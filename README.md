@@ -27,7 +27,7 @@ Keeps the plain skill names and makes edits in the clone live immediately:
 
 ```sh
 git clone https://github.com/mikhaylov-ya/grimoire.git ~/Documents/grimoire
-~/Documents/grimoire/install.sh           # add --force to back up existing copies
+~/Documents/grimoire/install.sh           # --force moves existing copies to ~/.claude/skills-backup
 ```
 
 Update with `git pull`. Set `CLAUDE_SKILLS_DIR` to install somewhere else.
