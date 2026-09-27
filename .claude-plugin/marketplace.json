@@ -1,0 +1,14 @@
+{
+  "name": "grimoire",
+  "description": "A book of Claude Code skills.",
+  "owner": {
+    "name": "Yaroslav Mikhaylov"
+  },
+  "plugins": [
+    {
+      "name": "grimoire",
+      "source": "./",
+      "description": "Code-reading audit skills: UX flow friction and codebase duplication/coherence."
+    }
+  ]
+}

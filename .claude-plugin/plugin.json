@@ -1,0 +1,8 @@
+{
+  "name": "grimoire",
+  "version": "1.0.0",
+  "description": "Code-reading audit skills: UX flow friction and codebase duplication/coherence.",
+  "author": {
+    "name": "Yaroslav Mikhaylov"
+  }
+}
