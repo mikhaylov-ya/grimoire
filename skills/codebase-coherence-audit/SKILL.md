@@ -1,13 +1,17 @@
 ---
 name: codebase-coherence-audit
 description: >
-  Audit a codebase (or a scoped part of one) for duplicate and near-duplicate
-  code, and decide WHICH duplication is actually worth abstracting versus
-  which should stay duplicated. Use this whenever the user asks to find
-  repeated, copy-pasted, or structurally similar code, wants abstraction or
-  refactoring proposals for duplication, asks for a coherence audit, a DRY
-  audit, or a "smells repetitive" review, or wants help naming a shared
-  abstraction across near-duplicate call sites. Make sure to trigger this
+  Audit a codebase (or a scoped part of one) for families of similar code —
+  both code that looks alike and code that performs the same business
+  function while looking different — and turn the families worth merging
+  into abstractions shaped around real domain concepts, in the right form
+  (parameter, template, strategy, state machine, table, ...). Decides WHICH
+  similarity is worth abstracting versus which should stay duplicated. Use
+  this whenever the user asks to find repeated, copy-pasted, structurally
+  or functionally similar code, wants abstraction or refactoring proposals,
+  asks for a coherence audit, a DRY audit, or a "smells repetitive" review,
+  asks what domain concept is missing from a codebase, or wants help naming
+  a shared abstraction across similar call sites. Make sure to trigger this
   even when the user doesn't say "duplicate" explicitly but describes
   symptoms of it — e.g. "these five functions all do basically the same
   thing," "I keep copy-pasting this block," "is there a cleaner way to
@@ -24,12 +28,14 @@ description: >
 
 ## What this skill is actually for
 
-Finding duplicate code is easy — every IDE has a "find similar code" button. The hard, valuable part is deciding **which duplication is worth fixing**, and **what to name the fix** so it reads as a real domain concept rather than a parameterized pile of `if flag_a` branches.
+Finding duplicate code is easy — every IDE has a "find similar code" button. The hard, valuable part is deciding **which similarity is worth fixing**, **what form the fix takes**, and **what to name it** so it reads as a real domain concept rather than a parameterized pile of `if flag_a` branches.
+
+Similarity has two dimensions, and the audit covers both. **Code shape** is found formally — clone detectors and compression distance (Step 1). **Business function** — code that does the same job for the business in different code — is found by describing each unit in domain terms and grouping the descriptions (Step 1b). The strongest findings sit where the two meet, or where several clusters turn out to be facets of one domain concept nobody gave a home.
 
 Two decision rules do that work, and they answer different questions:
 
 - **The function lens** answers *should these be one thing at all* — not "what does this code do" but **"what useful function does this perform toward the system's actual goal, and is that function essential, or could it be absorbed elsewhere or dropped?"** Shape-of-the-code is the wrong question; function-toward-a-real-process is the right one. Two blocks performing one business function want one home even when they look different; two blocks performing different functions must stay apart even when they're token-identical.
-- **Minimum Description Length (MDL)** answers *is the merge worth its price* — an abstraction earns its place only if `len(abstraction) + sum(len(delta at each call site))` is meaningfully shorter than the duplicated code it replaces. If covering the variation needs nearly one parameter per call site, the right answer is "leave it duplicated."
+- **Minimum Description Length (MDL)** answers *is the merge worth its price* — an abstraction earns its place only if `len(abstraction) + sum(len(delta at each call site))` is meaningfully shorter than the duplicated code it replaces. If covering the variation needs nearly one parameter per call site, that form has failed. Either another form carries the variation (Step 4), or the right answer is "leave it duplicated."
 
 The function lens runs first and can veto MDL in both directions. Saying "leave this duplicated," with a reason, is a legitimate and often more valuable output than a refactor diff — and so is "this whole cluster performs no function anyone needs; delete it."
 
@@ -40,10 +46,25 @@ Treat every cluster of similar code as a candidate to be *evaluated*, not a defe
 Never run a whole-repo scan on a vague "audit my codebase" request. Ask (or infer from context already in the conversation) whichever of these aren't already clear:
 
 1. **Boundary** — the whole repo, one module/package, one architectural layer ("all the API controllers", "everything under `src/importers/`"), or files touched recently (e.g. `git diff` against a branch, or the last N commits). If the user gives you a diff, PR, or a specific pain point ("this file is 2000 lines and half of it looks the same"), that IS the scope — don't widen it uninvited.
-2. **Depth** — surface syntactic duplication only (fast, safe, high precision), or also semantic/behavioral duplication (code that reads differently but does the same thing — slower, needs actual understanding of the logic, more false-positive risk).
+2. **Depth** — surface syntactic duplication only (Step 1: fast, safe, high precision), or also business-function duplication (Step 1b: code that reads differently but does the same job — slower, needs understanding of the callers, more false-positive risk).
 3. **Appetite for change** — does the user want a report with proposals they'll review, or should you go ahead and make the extraction for the strongest candidates? Default to "report with proposals" unless told otherwise — this audit produces judgment calls, and judgment calls should be reviewed by a human before code moves.
 
 If the user's request already answers all three (e.g. "look at `src/handlers/` for copy-pasted validation logic and just tell me what you find"), don't ask — proceed and state the scope you're using in one line before you start.
+
+### Execution mode — one agent or a fan-out
+
+Judging a cluster means reading every site and its callers; past a handful of clusters one context can't hold that and still compare them. Decide after Step 1 has produced its clusters:
+
+- **Solo** — up to ~8 clusters, or a single module at syntactic depth. Run Steps 2–6 yourself.
+- **Fan-out** — more clusters, several modules, or business-function depth across more than one module. You keep the steps that need one coherent view — scope, detection (Step 1), the domain index (Step 2) — and hand the per-cluster work to parallel agents: a function-card reader per module (Step 1b), a judge per cluster (Steps 3–5), a skeptic per verdict arguing the opposite way, and one synthesizer that writes the report and names concepts that span clusters.
+
+For a fan-out, write the domain index to a file in your scratchpad, then tell the user the plan and a rough agent count (about 2 per cluster + 1 per module + 2) and get a yes before launching — it costs far more than a solo run. Launch it with, in order of preference:
+
+1. **The Workflow tool** — `scriptPath: <this skill's directory>/workflows/coherence-audit.js`, with `args` = `{ skillDir, indexPath, scope, clusters, modules }` (the script header documents each field). Omit `modules` at syntactic depth.
+2. **The Agent tool**, if Workflow isn't available — the same roles, as parallel subagents with the same prompts the script uses.
+3. **Solo, prioritized** — if neither exists, say so, judge the clusters in order of similarity × number of sites, and report which ones you didn't reach.
+
+Either way the report is yours to check before handing it over: re-read any verdict where the skeptic refuted the judge.
 
 ## Step 1 — Find candidate clusters
 
@@ -55,6 +76,17 @@ General approach, cheapest-first:
 - Chunk at a meaningful unit — function/method bodies, not whole files — or clone detectors will drown you in file-level noise.
 
 The output of this step is a list of clusters: each cluster is a set of 2+ code locations (file + line range) that a detector flagged as similar, with a similarity score.
+
+## Step 1b — Find code that does the same job (business-function depth only)
+
+Clone detectors can't see this, so the step is descriptive rather than metric. Read `references/business-function.md` first.
+
+1. Write a **function card** per business-performing unit in scope: context, trigger, function (domain verb + work object), effect class, rule. Describe it from its callers and effects; record the means but never group on them.
+2. **Group** cards by (function, effect class, rule). Context is a veto: same key in different contexts goes through the keep-apart check before it becomes a candidate.
+3. **Verify each group pairwise** — inputs, outputs, side effects, edge cases, and what the tests assert. Label matches alone produce mostly false clusters.
+4. **Cross-reference** with Step 1: a function group that overlaps a clone cluster merges into it (it now has a name); one that doesn't is a new cluster with `similarity: functional`.
+
+These clusters then go through Steps 2–6 like any other.
 
 ## Step 2 — Build the domain index
 
@@ -90,19 +122,23 @@ The answers give the verdict directly:
 | No one's process depends on it | — | unowned / dead | **Eliminate** — delete, and say what else dies with it (i18n keys, tests, fixtures) |
 | Different functions that happen to share a shape | separate by design | — | **Coincidental — no action** |
 
-Two blocks that both validate a string, log an event, and return early can be token-identical while serving unrelated functions ("is this email well-formed" versus "is this SKU well-formed"). Coupling those means the two features can no longer evolve independently — a real cost even when the shared function is short. Never drop a coincidental cluster silently; report it as "duplicate but not related", since the user may read the domain differently than you do.
+Two blocks that both validate a string, log an event, and return early can be token-identical while serving unrelated functions ("is this email well-formed" versus "is this SKU well-formed"). Coupling those means the two features can no longer evolve independently — a real cost even when the shared function is short. Never drop a coincidental cluster silently; report it as "duplicate but not related", since the user may read the domain differently than you do. The same goes for lookalikes from different contexts — same term but different invariants, actors, owners or change history (`references/business-function.md`, "stay apart"). They are variation by design even when the code is identical.
 
 **Report drift separately.** When the index calls a concept canon and the sites have diverged, that is a bug finding regardless of what you recommend about the code: name what each copy does differently and which one is right. This is frequently the most valuable output of the whole audit, and it is invisible to every duplicate-finder that skips this step.
 
-## Step 4 — Score each surviving cluster with MDL
+**Then look across clusters.** Once each has a function, read the list as a whole. Several clusters are often facets of one concept that has no home. Common forms are the same predicate used as a filter, a validator and a creation guard, one status switch repeated across pages, or one policy buried in several guard clauses. Report that as a **missing concept**: its name, what it would own, and which clusters it absorbs. It usually beats the per-cluster extractions it replaces.
 
-For each cluster the function lens sent to **Extract** or **Absorb**, sketch the abstraction and estimate both sides of the MDL comparison. You don't need exact byte counts — a reasoned estimate is the point, and the report should show your reasoning, not just a verdict.
+## Step 4 — Choose the form, then score it with MDL
+
+For each cluster the function lens sent to **Extract** or **Absorb**, first **name what varies between the sites** and pick the form from it — a parameter, separate functions, a callback, a template with hooks, a strategy, a state machine, a table read by one engine. Take the weakest form that fits; `references/abstraction-forms.md` has the table, the converge-first method and the quality bar. Then sketch the abstraction in that form and estimate both sides of the MDL comparison. You don't need exact byte counts — a reasoned estimate is the point, and the report should show your reasoning, not just a verdict.
 
 **Cost of the abstraction** = the shared function/class body, PLUS at every call site: the call itself plus whatever glue is still needed there (parameters passed, any pre/post lines that couldn't be folded in).
 
 **Cost of the status quo** = the current duplicated code, counted as-is, at every site.
 
-The tell-tale sign of a *bad* abstraction candidate: the parameter list needed to cover every site's variation grows to the point where it's nearly one parameter (or one conditional branch) per call site. At that point the "shared function" is really just the duplicated logic relocated behind a function call, with a dispatch table bolted on — same total complexity, worse locality (a reader now has to jump to the shared function AND understand every flag to know what one call site actually does). Concretely: if you're proposing more than roughly 2-3 parameters *beyond* what a reader would expect from the name, or any parameter whose job is "which branch of the original duplicated logic to run," that's the signal to recommend leaving the cluster duplicated.
+The tell-tale sign of a *bad* abstraction candidate: the parameter list needed to cover every site's variation grows to the point where it's nearly one parameter (or one conditional branch) per call site. At that point the "shared function" is really just the duplicated logic relocated behind a function call, with a dispatch table bolted on — same total complexity, worse locality (a reader now has to jump to the shared function AND understand every flag to know what one call site actually does). Concretely: if you're proposing more than roughly 2-3 parameters *beyond* what a reader would expect from the name, or any parameter whose job is "which branch of the original duplicated logic to run," the parameterized form has failed. Before recommending "leave duplicated", check whether the variation has a shape a different form carries cleanly. Per-site policies that are really data fit a table. Per-site steps in a fixed skeleton fit a template with hooks. If some form passes the quality bar, propose it and price that form instead.
+
+**Change test.** Name one or two plausible future changes to the function and count the sites each would touch before and after. An abstraction that makes none of them local is shape-matching, whatever MDL says (Parnas: a module hides a decision likely to change).
 
 When MDL comes out near break-even, the function lens breaks the tie, not line count: an essential function with one owner is worth centralizing at par, because the recurring cost is the multi-file edit every future change forces, not the lines on disk today. Say exactly that in the report when you lean on it.
 
@@ -132,23 +168,35 @@ Use this structure. Do not silently drop clusters that didn't survive Step 3 or 
  spec section, ADR, ticket, test name, or "asked the user">
 
 ## Summary
-<N clusters found; M to extract, A to absorb into an existing owner,
- J to leave duplicated, E to eliminate, K coincidental; D drift defects>
+<N clusters found (F of them functional); M to extract, A to absorb into
+ an existing owner, J to leave duplicated, E to eliminate, K coincidental;
+ D drift defects; C missing concepts>
 
 ## Drift — canon concepts whose copies disagree
 <one line per divergence: the rule, the copies, which one is right.
  Omit this section if there is none.>
 
+## Missing concepts
+<per concept: name, what it would own, the clusters it absorbs.
+ Omit this section if there is none.>
+
 ## Cluster <n>: <short description>
 **Locations:** <file:lines, file:lines, ...>
-**Similarity:** <how it was found — e.g. "97% token match" or "NCD 0.08">
+**Similarity:** <how it was found — e.g. "97% token match", "NCD 0.08",
+ or "functional: same function card, verified pairwise">
 **Function:** <verb + domain noun, in the business's words>
 **Index:** <canon / variation by design / unowned — and the authority for that>
 **Essential?** <yes, and who owns it / no, and what depends on it>
+**Varies by:** <what differs between sites, and its shape — value, flag,
+ step, algorithm, state, data; the commonality/variability matrix
+ for functional clusters>
 **MDL estimate:** <abstraction cost vs. duplicated cost, one line each —
+ only for Extract and Absorb>
+**Change test:** <the likely change, sites touched before → after —
  only for Extract and Absorb>
 **Verdict:** Extract / Absorb / Leave duplicated / Eliminate / Coincidental — no action
 **Proposed abstraction** (only for Extract and Absorb):
+  - Form: <parameter / template / strategy / state machine / table / ...>
   - Name: `<name>`
   - Signature sketch
   - What stays as call-site-specific glue

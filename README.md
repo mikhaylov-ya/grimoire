@@ -5,7 +5,7 @@ A book of [Claude Code](https://claude.com/claude-code) skills.
 | Skill | What it does |
 |---|---|
 | [`ux-flow-audit`](skills/ux-flow-audit/SKILL.md) | Reads a web app's source to reconstruct real user flows and find where users work harder than necessary: excess clicks, redundant data entry, pointless confirmations, missing bulk actions, dead ends, unreachable states. Framework-agnostic. |
-| [`codebase-coherence-audit`](skills/codebase-coherence-audit/SKILL.md) | Finds duplicate and near-duplicate code and decides which duplication is worth abstracting and which should stay duplicated. Guards against over-abstraction and negotiates scope before scanning. |
+| [`codebase-coherence-audit`](skills/codebase-coherence-audit/SKILL.md) | Finds families of similar code, both by shape (clone detection, compression distance) and by business function. It turns the families worth merging into domain-shaped abstractions in the right form, recommends leaving the rest duplicated, and names missing domain concepts. For large scopes it fans out through a bundled workflow. |
 
 ## Install
 
