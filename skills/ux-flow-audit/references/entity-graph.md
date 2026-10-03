@@ -1,12 +1,12 @@
-# The Entity Graph
+# The entity graph — read before Step 3
 
 The ideal path is bounded by what the system could know. Most of what it could know is not on the
 screen you're reading — it's one relation away, in a record the user already picked.
 
 A per-screen pass cannot find this. Walking a form field by field, every field looks defensible:
-someone has to choose the protocol, someone has to name the product. The defect is that choosing
-the goal already named the product, and choosing the product already narrowed the protocols to
-three. Nothing on the screen says so, because the missing link lives in another slice.
+someone has to choose the customer, someone has to pick the products. The defect is that choosing
+the contract already named the customer, and the contract already narrowed ~4,000 products to the
+30 it covers. Nothing on the screen says so, because the missing link lives in another slice.
 
 So build the graph before you count interactions.
 
@@ -25,12 +25,13 @@ The graph tells you what is connectable. The domain docs tell you what users act
 in what order. Product specs, a glossary or context map, onboarding material, role guides — these
 often state the intended journey outright:
 
-> Users go to the substance page and create a synthesis from its protocols tab — they want to
-> synthesize *that* substance, and the substance is usually the item named by an open goal.
+> Account managers open the customer page and create an order from its Orders tab — they are
+> ordering *for that customer*, almost always under the customer's active contract.
 
-That sentence is worth more than any heuristic: it names the anchor entity (the substance), the
-hop the user has already made (they navigated to it), and a second relation the system can follow
-(substance ← goal). A form that starts empty in that context is throwing away two known values.
+That sentence is worth more than any heuristic: it names the anchor entity (the customer), the hop
+the user has already made (they navigated to it), and a second relation the system can follow
+(customer → active contract). A form that starts empty in that context is throwing away two known
+values.
 
 Quote the doc in the finding. A divergence between a written intended path and the code is a
 spec defect, not a preference — say so, and it stops being arguable.
@@ -40,30 +41,30 @@ spec defect, not a preference — say so, and it stops being arguable.
 For each edge in the graph that the flow crosses:
 
 **1. Propagation — the chosen record names another; is that other one filled in?**
-*Tell:* a handler that stores only the id it was given. `on_goal_select` setting `goal_id` and
-nothing else, when the goal row carries `item_id`. Also: two steps that read the same relation
-from opposite ends, neither writing to the other.
+*Tell:* a handler that stores only the id it was given. `on_contract_select` setting
+`contract_id` and nothing else, when the contract row carries `customer_id`. Also: two steps that
+read the same relation from opposite ends, neither writing to the other.
 *Fix:* prefill the related field, visibly, editable, and only while the user hasn't set it
 themselves.
 
 **2. Narrowing — the chosen record constrains a later picker; is that picker constrained?**
 *Tell:* the strongest one in this whole catalog — a query's filter arguments compared against what
-the form already holds. A `where` built from `name ILIKE '%search%'` when the draft has a product
-id, and the relation product→protocol exists, is proof by omission. Same for a select fed by a
+the form already holds. A `where` built from `name ILIKE '%search%'` when the draft has a contract
+id, and the relation contract→product exists, is proof by omission. Same for a select fed by a
 `list_all` query in a form that has already picked the parent.
 *Fix:* filter by the anchor by default, and provide a visible escape ("search all") — a narrowed
 picker with no way out is a trap when the anchor is wrong or the data is incomplete.
 
 **3. Direction symmetry — is the inference implemented both ways?**
 Relations are symmetric; implementations rarely are. Teams usually build the direction that matches
-their write order and leave the other empty. If picking the product narrows the goals but picking
-the goal does not fill the product, that asymmetry is the finding — and it's cheap to fix, because
-the join is already written.
+their write order and leave the other empty. If picking the customer narrows the contracts but
+picking the contract does not fill the customer, that asymmetry is the finding — and it's cheap to
+fix, because the join is already written.
 *Tell:* one query filtered by a draft field, and no code path writing the reverse.
 
 **4. Invalidation — when the anchor changes, what happens to what was derived from it?**
-Inference creates a dependency the user can't see. Change the product, and a goal chosen for the
-old product is now wrong — silently attached, and submitted.
+Inference creates a dependency the user can't see. Change the customer, and a contract chosen for
+the old customer is now wrong — silently attached, and submitted.
 *Tell:* a prefill or filter that reads the anchor, with no watcher clearing or re-checking
 dependents when it changes. Ask what the backend does on submit: if it rejects the stale
 combination, the user hits a submit-time error for a value they never touched; if it accepts, the
@@ -75,8 +76,8 @@ A prefill contract is a promise; entry points fulfil it unevenly. Build the matr
 
 | Entry point | Knows | Passes | Gap |
 |---|---|---|---|
-| Substance page → protocols tab | item, its open goals | item | goal |
-| Goal page | goal, its item | goal, item | — |
+| Customer page → Orders tab | customer, its active contract | customer | contract |
+| Contract page | contract, its customer | contract, customer | — |
 | Global create menu | nothing | nothing | — deliberate |
 
 *Tell:* grep the prefill type's usages and compare each call site against the route params and
@@ -95,16 +96,16 @@ entry that passes a subset of what its page holds is the defect.
 - **Don't propagate over user edits.** The rule is: fill what is empty, never overwrite what was
   typed. If the code has a `*_dirty` flag or similar, it already knows this — check it's respected.
 - **Step order follows the inference, not the write order.** If step 4's answer could fill step 2,
-  either the step order is wrong or the propagation is. Asking "зачем" before "из чего" is a
-  product decision; note the conflict, name both options, let the owner pick.
+  either the step order is wrong or the propagation is. Asking *under which contract* before *what
+  to order* is a product decision; note the conflict, name both options, let the owner pick.
 
 ## Reporting these
 
 Name the relation and the hop, not the category:
 
-> **F2 — Protocol picker ignores the product the plan already names**
-> `protocol → protocol_revision_items.item_id` exists and the draft holds `items[role=product]`,
-> but the picker's `where` filters on name and operation type only.
+> **F2 — Product picker ignores the contract the order already names**
+> `product → contract_items.contract_id` exists and the draft holds `contract_id`, but the
+> picker's `where` filters on name and category only.
 
-Quantify against the graph: "the user searches a catalogue of ~400 methodics for the 3 that make
-this compound." That is the interaction cost the edge would have removed.
+Quantify against the graph: "the user searches a catalogue of ~4,000 products for the 30 this
+contract covers." That is the interaction cost the edge would have removed.

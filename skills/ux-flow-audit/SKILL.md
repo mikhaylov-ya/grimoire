@@ -1,6 +1,13 @@
 ---
 name: ux-flow-audit
-description: Audits the logic-level usability of a web app by reading its source code. Reconstructs the real user flows from routes, state, forms and API calls, then finds where users are made to work harder than necessary — excess clicks and selects, redundant data entry, pointless confirmations, missing bulk actions, work-losing navigation, dead ends and unreachable states. Reads the entity graph too, so it catches values a chosen record already names but the next step still asks for, and pickers left unfiltered by what the user picked earlier. Framework-agnostic. Use this skill whenever the user asks to review, audit, critique or sanity-check the UX, usability, user flows or user journeys of a codebase, asks whether a flow makes sense, asks how to reduce friction or clicks or steps, says a flow feels clunky, slow or annoying, or wants a UX pass on a feature — even if they never say the word "usability". Do NOT use for visual, pixel or styling critique, for pure WCAG compliance scans, or for writing new features.
+description: >
+  Audits the logic-level usability of a web app by reading its source: reconstructs real user
+  flows from routes, state, forms and API calls, and finds where users work harder than necessary
+  — excess clicks, re-entered data, values a chosen record already implies, unfiltered pickers,
+  pointless confirmations, missing bulk actions, lost work, dead ends. Use when the user asks to
+  review or audit the UX, usability or user flows of a codebase, or says a flow feels clunky or
+  has too many steps, even without the word "usability". Not for visual or styling critique, WCAG
+  compliance scans, or building features.
 ---
 
 # UX Flow Audit
@@ -53,23 +60,22 @@ So:
 - **State each goal as a hypothesis with its evidence**, in the report. Not as background.
 - **Mark findings whose validity depends on an assumed goal.** If the goal is wrong, the finding is
   wrong; the reader needs to know which ones those are.
-- **Look for the tell that the code models the schema, not the task:** entities in the UI that
-  exist only because of a join table, steps ordered by write order rather than by how someone
-  thinks about the job, a flow whose shape matches the API surface exactly.
+- **Look for the tell that the code models the schema, not the task:** a UI entity that exists
+  only because of a join table, steps ordered by write order rather than by how someone thinks
+  about the job, a flow whose shape mirrors the API surface, a required field that exists because
+  the column is `NOT NULL`.
 
 This cuts against aggressive step-removal, deliberately. When the goal is uncertain, a default that
 serves the 90% you imagined can trap the 10% you didn't. Prefer *default plus visible override* to
 removing the choice, and say when a recommendation is only safe if the goal hypothesis holds.
 
-## Pipeline
+## Step 1 — Orient
 
-### 1. Orient
 Read the project's own docs first — `CLAUDE.md`, architecture notes, ADRs, README, and above all
-the **product spec, glossary or context map** if one exists. A well-documented repo has already
-described its flows and often names the intended journey outright ("users come from the substance
-page and want to synthesize that substance"); don't re-derive what's written down, and don't
-contradict it without evidence. Where the code diverges from a written intended path, that's a
-spec defect and outranks anything you infer.
+the **product spec, glossary or context map** if one exists. A well-documented repo often names the
+intended journey outright; don't re-derive what's written down, and don't contradict it without
+evidence. Where the code diverges from a written intended path, that's a spec defect and outranks
+anything you infer (`references/entity-graph.md`, "read the domain docs").
 
 Then locate flows: router config → e2e or `.feature` tests (the team's own description of intended
 journeys) → form and validation schemas → API layer → i18n keys and analytics events (these
@@ -79,7 +85,8 @@ Working-tree caution: on a repo with uncommitted work, check `git status` for th
 auditing before writing findings. A file read early in the session may have been edited since, and
 reporting a defect the team is mid-fix on wastes their time.
 
-### 2. Scope
+## Step 2 — Scope
+
 Rank flows by stakes and frequency: auth and onboarding, payment, the core repeated loop, anything
 done many times a day.
 
@@ -87,7 +94,7 @@ If there are more than ~8 substantial flows, show the list with your proposed to
 they want. Auditing everything shallowly produces worse findings than auditing a few deeply, and
 the user knows which flows their support tickets are about.
 
-### 3. Map — graph first, then ideal, then actual
+## Step 3 — Map: graph first, then ideal, then actual
 
 **Build the entity graph first** — the records the flow touches and the relations between them,
 taken from foreign keys, API filter arguments and schema types, never from the UI. Two or three
@@ -107,22 +114,31 @@ The audit is the diff. Doing it in this order matters: derived backwards from a 
 target is capped by whatever the catalog happens to catch, and a flow where nothing is individually
 wrong but the whole thing is three times longer than necessary passes clean. Ideal-first catches it.
 
-Also record, per screen, **decision density**: how many choices the screen demands at once versus
-how many are actually required to advance. A screen with nine inputs where two would let the user
-proceed is a finding even when every individual field is defensible.
+Also record **decision density** per screen (`references/interaction-cost.md`, "Counting cost").
 
 Where a flow is a real state machine (wizards, checkout, upload pipelines), sketch its states and
 transitions and look for states with no exit and states nothing can reach.
 
-### 4. Evaluate
-Walk each step against `references/interaction-cost.md`, each graph edge the flow crosses against
-`references/entity-graph.md`, then `references/flow-checks.md`.
+## Step 4 — Evaluate
+
+Don't run every step through every check — that produces a filled-in checklist, not five sharp
+findings. Work from the diff outward:
+
+1. **Explain the diff.** Each interaction the actual path has and the ideal path lacks is a
+   candidate. Find the catalog entry (`references/interaction-cost.md`) or graph check
+   (`references/entity-graph.md`) that explains it. Most findings come from here.
+2. **Sweep the tells.** Many tells are greppable: `confirm(` on cheap actions, a `list_all` feeding a
+   picker, a form reset in an error handler, a redirect to an index after a mutation, a loop of
+   single-item calls to an endpoint that accepts an array. One pass per flow; dig only into hits.
+3. **Then `references/flow-checks.md`** — the flow graph and the walkthrough questions always; the
+   state-coverage, form-path and WCAG tables only for the screens they apply to.
 
 Use the cognitive walkthrough questions as the lens, not heuristic labels. "At this step, will the
 user know what to do, and will they know it worked?" produces specific findings; "does this violate
 heuristic #4?" produces vague ones.
 
-### 5. Verify — before writing anything
+## Step 5 — Verify before writing anything
+
 Delete or demote any finding that:
 - lacks a file path, line reference and quoted snippet,
 - you could have written without reading this codebase,
@@ -132,15 +148,15 @@ Delete or demote any finding that:
 The known failure mode here is confident, plausible findings that aren't actually in the code. A
 short report of provable findings is worth more than a long one you'd have to defend.
 
-### 6. Report
+## Step 6 — Report
+
 Follow `references/reporting.md` exactly.
 
 ## Rules
 
 - **Evidence or it doesn't ship.** Every finding carries `path/file.ext:42` and the snippet proving
   it. Uncitable observations go in "worth testing with users."
-- **Tag confidence.** *Observed* (explicit in code) / *Inferred* (implied, state the assumption) /
-  *Speculative* (out of the findings table entirely).
+- **Tag confidence** — Observed / Inferred / Speculative, defined in `references/reporting.md`.
 - **Quantify against the ideal.** "9 interactions where 4 would do" beats "feels heavy."
 - **Flag goal-dependence.** If a finding only holds under an assumed user goal, mark it and name the
   assumption.

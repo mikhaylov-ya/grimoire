@@ -22,9 +22,9 @@ const A = args || {}
 if (!A.skillDir || !A.indexPath) throw new Error('args.skillDir and args.indexPath are required')
 
 const CTX = [
-  `Skill: ${A.skillDir}/SKILL.md. Domain index: ${A.indexPath} — read it first; it is the authority for canon / variation by design / unowned.`,
+  `Skill: ${A.skillDir}/SKILL.md; references in ${A.skillDir}/references/. Domain index: ${A.indexPath}.`,
+  `Your role is defined in ${A.skillDir}/references/roles.md — read its common rules and your section before anything else.`,
   `Scope: ${A.scope || 'as stated in the domain index'}.`,
-  'Read-only: do not edit, create or delete any file.',
 ].join('\n')
 
 const CARDS = {
@@ -77,6 +77,7 @@ const VERDICT = {
     index: { enum: ['canon', 'variation by design', 'unowned', 'not in index'] },
     authority: { type: 'string' },
     verdict: { enum: ['Extract', 'Absorb', 'Leave duplicated', 'Eliminate', 'Coincidental'] },
+    confidence: { type: 'string', description: 'Observed, or "Inferred: <the assumption>"' },
     variationShape: { type: 'string', description: 'what varies between sites, e.g. value, flag, step, algorithm, state, data' },
     form: { type: 'string', description: 'abstraction form, for Extract/Absorb only' },
     name: { type: 'string' },
@@ -86,7 +87,7 @@ const VERDICT = {
     drift: { type: 'array', items: { type: 'string' }, description: 'canon rules the copies disagree on, and which copy is right' },
     reasoning: { type: 'string' },
   },
-  required: ['function', 'index', 'authority', 'verdict', 'variationShape', 'drift', 'reasoning'],
+  required: ['function', 'index', 'authority', 'verdict', 'confidence', 'variationShape', 'drift', 'reasoning'],
 }
 
 const CHALLENGE = {
@@ -104,7 +105,7 @@ let clusters = (A.clusters || []).map(c => ({ ...c, source: 'clone' }))
 if (A.modules && A.modules.length) {
   phase('Inventory')
   const decks = await parallel(A.modules.map(m => () => agent(
-    `${CTX}\n\nFollow SKILL.md "Step 1b" and references/business-function.md. Write one function card per unit in ${m} that performs a business function — skip pure plumbing (formatting helpers, type glue). Describe each from its callers and effects, not its own lines.`,
+    `${CTX}\n\nRole: Inventory. Module: ${m}`,
     { label: `inventory:${m}`, phase: 'Inventory', schema: CARDS },
   )))
   const cards = decks.filter(Boolean).flatMap(d => d.cards)
@@ -113,7 +114,7 @@ if (A.modules && A.modules.length) {
   if (cards.length) {
     phase('Group')
     const grouped = await agent(
-      `${CTX}\n\nFollow references/business-function.md. Group these function cards by (function, effectClass, rule), however different their means. Context is a veto: cards with the same key in different contexts join a group only if they pass the "stay apart" check. Only keep groups with 2+ locations. Mark which clone clusters cover the same code so they are not judged twice.\n\nClone clusters:\n${JSON.stringify(A.clusters || [])}\n\nCards:\n${JSON.stringify(cards)}`,
+      `${CTX}\n\nRole: Group.\n\nClone clusters:\n${JSON.stringify(A.clusters || [])}\n\nCards:\n${JSON.stringify(cards)}`,
       { label: 'group', phase: 'Group', schema: GROUPS },
     )
     const fresh = (grouped?.clusters || []).filter(c => !c.overlapsClusters.length)
@@ -131,31 +132,26 @@ if (!clusters.length) return { report: 'No clusters to judge.', verdicts: [] }
 const judged = await pipeline(
   clusters,
   c => agent(
-    `${CTX}\n\nJudge this cluster with SKILL.md Steps 3–5 and references/abstraction-forms.md.\n${JSON.stringify(c)}\n\nRead every location and its callers.${c.source === 'function' ? ' This cluster was grouped by function card, not by code shape: first verify it pairwise (inputs, outputs, side effects, edge cases, what the tests assert). If the members do not really do the same job, the verdict is Coincidental. Otherwise build the commonality/variability matrix from references/business-function.md and put it in variationShape.' : ''} For Extract/Absorb, pick the weakest form that fits the variation shape and fill form, name, signature, mdl and changeTest.`,
+    `${CTX}\n\nRole: Judge. Cluster (source "${c.source}" — grouped by ${c.source === 'function' ? 'function card, so verify it pairwise first' : 'code shape'}):\n${JSON.stringify(c)}`,
     { label: `judge:${c.id}`, phase: 'Judge', schema: VERDICT },
   ),
   (v, c) => {
     if (!v) return null
-    const merge = v.verdict === 'Extract' || v.verdict === 'Absorb'
-    const lens = merge
-      ? 'Argue AGAINST this abstraction: coincidental duplication, variation by design, a flag per call site, a shallow wrapper, or a form stronger than the variation needs.'
-      : v.verdict === 'Eliminate'
-        ? 'Argue that something still depends on this code: callers, routes, jobs, tests, external consumers.'
-        : 'Argue FOR a shared concept: one rule these sites must keep identical, drift between them, or a weaker form (parameter, table) that removes the duplication without coupling policy.'
     return agent(
-      `${CTX}\n\nA judge ruled on this cluster:\n${JSON.stringify(c)}\n\nVerdict:\n${JSON.stringify(v)}\n\n${lens} Read the code yourself. Set refuted=true only if the evidence in the code or the index beats the judge's reasoning; otherwise refuted=false.`,
+      `${CTX}\n\nRole: Skeptic. Cluster:\n${JSON.stringify(c)}\n\nThe judge's verdict:\n${JSON.stringify(v)}`,
       { label: `challenge:${c.id}`, phase: 'Challenge', schema: CHALLENGE, effort: 'medium' },
     ).then(ch => ({ cluster: c, verdict: v, challenge: ch }))
   },
 )
 
 const results = judged.filter(Boolean)
-const dropped = clusters.length - results.length
-if (dropped) log(`${dropped} clusters failed to judge and are missing from the report`)
+const failed = clusters.filter(c => !results.some(r => r.cluster === c)).map(c => c.id)
+const dropped = failed.length
+if (dropped) log(`${dropped} clusters failed to judge: ${failed.join(', ')}`)
 
 phase('Synthesize')
 const report = await agent(
-  `${CTX}\n\nWrite the final report in the SKILL.md Step 6 format from these judged clusters. Where a challenge refuted the judge, weigh both arguments and either change the verdict or mark it "contested" with both sides in one line each.\n\nBefore the per-cluster sections, add "## Missing concepts": clusters whose functions are facets of one domain concept that has no home — name the concept, list the clusters, and say what the owner would hold. Omit the section if there are none.\n\n${JSON.stringify(results)}`,
+  `${CTX}\n\nRole: Synthesizer. Clusters that failed to judge: ${failed.length ? JSON.stringify(failed) : 'none'}.\n\nJudged clusters:\n${JSON.stringify(results)}`,
   { label: 'synthesize', phase: 'Synthesize' },
 )
 

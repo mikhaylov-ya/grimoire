@@ -1,43 +1,130 @@
 # Detection tools — read before Step 1
 
-Pick based on language and what's already installed. Try the precise tool first; fall back to the NCD script at the bottom if nothing fits or install isn't feasible in this environment.
+Pick by language and by what's installed. Try the precise tool first; fall back to NCD at the bottom
+if nothing fits or nothing can be installed.
 
-## JavaScript / TypeScript
+**Write every report to your scratchpad (`$OUT` below), never into the repo** — the audit is
+read-only, and a report directory in the tree pollutes `git status` and the next scan.
 
-`jscpd` is the standard choice — fast, handles JS/TS/JSX/Vue, reports Type-1/2 clones with line ranges and a similarity percentage out of the box.
+## JavaScript / TypeScript / Vue — jscpd
 
-```bash
-npx jscpd <path> --min-lines 5 --min-tokens 50 --reporters json --output ./jscpd-report
-```
-
-Read `jscpd-report/jscpd-report.json` — each entry has `firstFile`, `secondFile`, `lines`, and a `fragment` snippet. Group entries that share a file into clusters before moving to Step 2.
-
-## Python
-
-`pylint`'s duplicate-code checker or `flake8-copy-paste` both work for quick checks, but for real clustering across near-duplicates, PMD CPD (below) handles Python too and gives better line-range output.
-
-## Java, C, C++, Python, Go, and 20+ others
-
-PMD's **CPD** (Copy-Paste Detector) is language-agnostic across a wide set and is a solid default when jscpd doesn't cover the language:
+Fast, covers JS/TS/JSX/Vue and ~150 other formats, reports Type-1/2 clones with line ranges.
 
 ```bash
-pmd cpd --minimum-tokens 50 --language <java|python|cpp|go|...> --dir <path> --format json
+npx -y jscpd <path> --min-lines 5 --min-tokens 50 --reporters json --output "$OUT/jscpd" --silent
 ```
 
-## Any language, or when nothing above is installed/available
+`$OUT/jscpd/jscpd-report.json` has a `duplicates` array of **pairs**: `firstFile` and `secondFile`
+(each with `name`, `start`, `end`), plus `lines`, `tokens` and `fragment`. A clone present in three
+places is reported as two or three pairs, so pairs must be merged into clusters by overlapping
+fragments — not by shared file name, which joins unrelated clones in one file and splits one clone
+across files. Run `cluster_pairs.py` below on it.
 
-**Simian** (Similarity Analyser) is a single-jar, language-agnostic clone detector that works reasonably well across almost any C-like or block-structured language without per-language tuning.
+## Java, C, C++, C#, Go, Python, Kotlin, Swift, … — PMD CPD
 
-## Structural (near-duplicate, not just token-identical) matching
+Language-agnostic across 30+ languages; the default when jscpd doesn't cover the language. PMD 7:
 
-Token-based tools like the above miss clones where variable names or literal values changed structurally, or statements were reordered. For that, a `tree-sitter`-based AST diff is worth it if the cluster from a token-tool looks promising but the match percentage is mediocre (60-85%) — parse both blocks, normalize identifiers, and diff the trees. This is heavier and should be used selectively on shortlisted candidates, not as a first pass over a whole repo.
+```bash
+pmd cpd --minimum-tokens 50 --language <java|python|cpp|go|...> --dir <path> --format xml > "$OUT/cpd.xml"
+```
 
-## Fallback: NCD (compression-distance) — no tool install needed
+Each `<duplication lines=… tokens=…>` holds 2+ `<file path=… line=… endline=…>` elements — already a
+cluster, no merging needed. Add `--ignore-identifiers --ignore-literals` to catch Type-2 clones
+(renamed variables, changed constants), at the cost of more noise.
 
-Use this when no clone detector is available for the language, or as a cheap first filter over a very large scope to shortlist which files/directories deserve a closer look. It won't give you precise line ranges the way a clone detector does — pair it with `grep`/manual inspection to narrow down the exact overlapping lines once a pair of chunks scores as similar.
+## Python — quick check without PMD
+
+```bash
+pylint --disable=all --enable=duplicate-code --min-similarity-lines=6 <path>
+```
+
+Text output only, pairwise, and blind to renames; good for a yes/no on a small scope. Use CPD for
+real clustering.
+
+## Any language, nothing else available — Simian
+
+A single jar that works on most C-like or block-structured languages without tuning. Free for
+non-commercial use only; check the licence before using it on a client's code.
+
+```bash
+java -jar simian.jar -threshold=6 -formatter=xml "<path>/**/*.<ext>" > "$OUT/simian.xml"
+```
+
+## Near-duplicates the token tools score at 60–85%
+
+Token tools miss clones with reordered statements or renamed structure. For a **shortlisted** pair
+only — never a whole-repo pass — compare normalized syntax trees: parse both blocks, replace every
+identifier and literal with a placeholder, and compare. For Python the standard library suffices:
 
 ```python
-import gzip
+import ast, difflib
+
+class Normalize(ast.NodeTransformer):
+    def visit_Name(self, n): return ast.copy_location(ast.Name(id="_", ctx=n.ctx), n)
+    def visit_arg(self, n): n.arg = "_"; return n
+    def visit_Attribute(self, n): self.generic_visit(n); n.attr = "_"; return n
+    def visit_Constant(self, n): return ast.copy_location(ast.Constant(value=0), n)
+
+def shape(src: str) -> list[str]:
+    tree = Normalize().visit(ast.parse(src))
+    return ast.dump(tree).replace("(", "\n(").splitlines()
+
+def structural_similarity(a: str, b: str) -> float:
+    return difflib.SequenceMatcher(None, shape(a), shape(b)).ratio()
+```
+
+For other languages do the same with `tree-sitter` (`pip install tree-sitter tree-sitter-<lang>`):
+walk the tree, emit node types, and drop identifier and literal text.
+
+## Merging pairs into clusters — `cluster_pairs.py`
+
+For jscpd, or any tool that reports pairs. Two fragments join a cluster when they share a file and
+their line ranges overlap; clustering is transitive.
+
+```python
+import json, sys
+from collections import defaultdict
+
+pairs = json.load(open(sys.argv[1]))["duplicates"]
+frags, parent = [], []
+
+def find(i):
+    while parent[i] != i:
+        parent[i] = parent[parent[i]]
+        i = parent[i]
+    return i
+
+def add(f):
+    for i, (name, s, e) in enumerate(frags):
+        if name == f["name"] and s <= f["end"] and f["start"] <= e:
+            return i
+    frags.append((f["name"], f["start"], f["end"])); parent.append(len(parent))
+    return len(frags) - 1
+
+for p in pairs:
+    a, b = add(p["firstFile"]), add(p["secondFile"])
+    parent[find(a)] = find(b)
+
+clusters = defaultdict(list)
+for i, (name, s, e) in enumerate(frags):
+    clusters[find(i)].append(f"{name}:{s}-{e}")
+for n, locs in enumerate(sorted(clusters.values(), key=len, reverse=True), 1):
+    print(f"C{n} ({len(locs)} sites): " + ", ".join(sorted(locs)))
+```
+
+`python3 cluster_pairs.py "$OUT/jscpd/jscpd-report.json"`
+
+## Fallback: NCD (compression distance) — no install needed
+
+Two chunks that compress much smaller together than apart share real structure. Use it when no
+clone detector covers the language, or to shortlist which directories deserve a real tool. It gives
+no precise line ranges; narrow a flagged pair down by reading it.
+
+It compares every chunk with every other, so the cost is quadratic: run it **per directory or on a
+shortlist**, and keep each run under ~2,000 chunks (about two million comparisons).
+
+```python
+import gzip, sys
 from pathlib import Path
 from itertools import combinations
 
@@ -46,41 +133,31 @@ def c_len(text: str) -> int:
 
 def ncd(a: str, b: str) -> float:
     ca, cb = c_len(a), c_len(b)
-    cab = c_len(a + b)
-    return (cab - min(ca, cb)) / max(ca, cb)
+    return (c_len(a + b) - min(ca, cb)) / max(ca, cb)
 
-def chunk_functions(path: Path):
-    """Naive splitter — swap for a real parser (ast/tree_sitter) per language
-    if precision matters; this is intentionally dependency-free."""
-    text = path.read_text(errors="ignore")
-    # placeholder: split on blank-line-separated blocks as a crude proxy
-    # for functions when no parser is wired up for this language
-    blocks, current = [], []
-    for line in text.splitlines():
-        if line.strip() == "" and current:
-            blocks.append("\n".join(current))
-            current = []
-        else:
-            current.append(line)
-    if current:
-        blocks.append("\n".join(current))
-    return [b for b in blocks if len(b.strip()) > 40]  # skip trivial blocks
+def chunks(path: Path):
+    """Blank-line-separated blocks: a crude, dependency-free proxy for functions.
+    Swap in a real parser (ast, tree-sitter) when precision matters."""
+    block, start = [], 1
+    for n, line in enumerate(path.read_text(errors="ignore").splitlines() + [""], 1):
+        if line.strip():
+            if not block: start = n
+            block.append(line)
+        elif block:
+            text = "\n".join(block)
+            if len(text) > 200:  # skip trivial blocks
+                yield f"{path}:{start}-{n - 1}", text
+            block = []
 
-def find_similar_pairs(root: Path, glob: str, threshold: float = 0.35):
-    chunks = []
-    for f in root.rglob(glob):
-        for i, block in enumerate(chunk_functions(f)):
-            chunks.append((f"{f}#{i}", block))
-    pairs = []
-    for (name_a, a), (name_b, b) in combinations(chunks, 2):
-        d = ncd(a, b)
-        if d < threshold:
-            pairs.append((d, name_a, name_b))
-    return sorted(pairs)
+def similar_pairs(root: Path, glob: str, threshold: float = 0.35, limit: int = 2000):
+    items = [c for f in root.rglob(glob) for c in chunks(f)]
+    if len(items) > limit:
+        sys.exit(f"{len(items)} chunks: narrow the scope (limit {limit})")
+    return sorted((d, a, b) for (a, x), (b, y) in combinations(items, 2)
+                  if (d := ncd(x, y)) < threshold)
 
-# example: find_similar_pairs(Path("src/"), "*.py")
+# for d, a, b in similar_pairs(Path("src/importers"), "*.py"): print(f"{d:.2f}  {a}  {b}")
 ```
 
-Lower NCD = more similar (0 = compresses identically, ~1 = unrelated). A threshold around 0.3-0.4 is a reasonable starting point for flagging candidates worth a manual look; tune based on how noisy the first run's results are — if everything under the threshold is uninteresting, tighten it.
-
-This is the same mechanism as scoring an LLM continuation's plausibility by compressed size — here the "context" and "candidate" are two code chunks instead of a prompt and a continuation, and a small `ncd()` means the two chunks share exploitable structure.
+Lower is more similar: 0 compresses identically, ~1 is unrelated. Start around 0.3–0.4 and tighten
+if everything under the threshold is uninteresting.
