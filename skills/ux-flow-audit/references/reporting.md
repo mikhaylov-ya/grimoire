@@ -1,4 +1,4 @@
-# Severity, Confidence & Report Format
+# Severity, confidence and report format — read before Step 5
 
 ## Severity
 

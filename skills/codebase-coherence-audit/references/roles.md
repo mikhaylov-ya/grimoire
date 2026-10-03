@@ -31,7 +31,9 @@ SKILL.md Steps 3–5 and `abstraction-forms.md`. Read every location and its cal
   `business-function.md` into `variationShape`.
 - For Extract and Absorb, pick the weakest form that fits the variation and fill in form, name,
   signature, MDL and change test.
-- Record any drift between copies of a canon rule, and which copy is right.
+- Record any drift between copies of a canon rule, quoting the lines that disagree, and which copy
+  is right.
+- Tag confidence as SKILL.md Step 6 defines it: Observed, or Inferred with the assumption named.
 
 ## Skeptic — one per verdict
 

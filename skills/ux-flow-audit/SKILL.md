@@ -62,9 +62,8 @@ This cuts against aggressive step-removal, deliberately. When the goal is uncert
 serves the 90% you imagined can trap the 10% you didn't. Prefer *default plus visible override* to
 removing the choice, and say when a recommendation is only safe if the goal hypothesis holds.
 
-## Pipeline
+## Step 1 — Orient
 
-### 1. Orient
 Read the project's own docs first — `CLAUDE.md`, architecture notes, ADRs, README, and above all
 the **product spec, glossary or context map** if one exists. A well-documented repo often names the
 intended journey outright; don't re-derive what's written down, and don't contradict it without
@@ -79,7 +78,8 @@ Working-tree caution: on a repo with uncommitted work, check `git status` for th
 auditing before writing findings. A file read early in the session may have been edited since, and
 reporting a defect the team is mid-fix on wastes their time.
 
-### 2. Scope
+## Step 2 — Scope
+
 Rank flows by stakes and frequency: auth and onboarding, payment, the core repeated loop, anything
 done many times a day.
 
@@ -87,7 +87,7 @@ If there are more than ~8 substantial flows, show the list with your proposed to
 they want. Auditing everything shallowly produces worse findings than auditing a few deeply, and
 the user knows which flows their support tickets are about.
 
-### 3. Map — graph first, then ideal, then actual
+## Step 3 — Map: graph first, then ideal, then actual
 
 **Build the entity graph first** — the records the flow touches and the relations between them,
 taken from foreign keys, API filter arguments and schema types, never from the UI. Two or three
@@ -112,7 +112,8 @@ Also record **decision density** per screen (`references/interaction-cost.md`, "
 Where a flow is a real state machine (wizards, checkout, upload pipelines), sketch its states and
 transitions and look for states with no exit and states nothing can reach.
 
-### 4. Evaluate
+## Step 4 — Evaluate
+
 Walk each step against `references/interaction-cost.md`, each graph edge the flow crosses against
 `references/entity-graph.md`, then `references/flow-checks.md`.
 
@@ -120,7 +121,8 @@ Use the cognitive walkthrough questions as the lens, not heuristic labels. "At t
 user know what to do, and will they know it worked?" produces specific findings; "does this violate
 heuristic #4?" produces vague ones.
 
-### 5. Verify — before writing anything
+## Step 5 — Verify before writing anything
+
 Delete or demote any finding that:
 - lacks a file path, line reference and quoted snippet,
 - you could have written without reading this codebase,
@@ -130,7 +132,8 @@ Delete or demote any finding that:
 The known failure mode here is confident, plausible findings that aren't actually in the code. A
 short report of provable findings is worth more than a long one you'd have to defend.
 
-### 6. Report
+## Step 6 — Report
+
 Follow `references/reporting.md` exactly.
 
 ## Rules

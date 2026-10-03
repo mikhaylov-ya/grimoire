@@ -1,4 +1,4 @@
-# Flow Checks
+# Flow checks — read before Step 4
 
 Apply after the interaction-cost pass. Use these as questions, not labels — a finding phrased as an
 answer to a concrete question is useful; one phrased as a heuristic name is not.
@@ -74,12 +74,12 @@ Per screen, check which states the code handles. Report the gaps that matter, no
 
 ## Form paths
 
-- Every required constraint traced to a genuine downstream need (B7)
+- Every required constraint traced to a genuine downstream need (B4)
 - Prefilled from session, params or previous step where possible (A1)
-- Sane defaults on selects, dates, quantities (B6)
-- Field-level validation, not submit-only (D16)
-- Submitted values survive a failed submit (D14)
-- Draft or unsaved-changes guard on navigation away (D15)
+- Sane defaults on selects, dates, quantities (B3)
+- Field-level validation, not submit-only (D3)
+- Submitted values survive a failed submit (D1)
+- Draft or unsaved-changes guard on navigation away (D2)
 - Double-submit prevented — otherwise the user creates duplicates
 - Server errors mapped back to the specific field, not one generic banner
 - Enter submits; focus lands somewhere useful after submit and after an error

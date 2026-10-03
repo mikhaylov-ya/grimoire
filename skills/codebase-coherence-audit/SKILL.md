@@ -150,8 +150,8 @@ refactor verdict: name what each copy does differently and which one is right. T
 most valuable output of the audit, and invisible to every duplicate-finder that skips this step.
 
 **Missing concepts.** With every cluster's function named, read the list as a whole: several
-clusters are often facets of one concept with no home (signals in `references/business-function.md`).
-Report the concept — its name, what it would own, which clusters it absorbs. It usually beats the
+clusters are often facets of one concept with no home (signals in
+`references/business-function.md`). Report the concept — its name, what it would own, which clusters it absorbs. It usually beats the
 per-cluster extractions it replaces.
 
 ## Step 4 — Choose the form, then price it
@@ -193,7 +193,17 @@ and parameter names alone? If you can't state the function in one short phrase, 
 optimistic — re-check whether the cluster is coincidental, or downgrade to "duplication flagged, no
 abstraction proposed yet".
 
-## Step 6 — Report
+## Step 6 — Verify, then report
+
+**Verify before writing.** In solo mode nobody else challenges your verdicts, so do it yourself:
+
+- Argue the opposite of every Extract, Absorb and Eliminate verdict, using the skeptic's brief in
+  `references/roles.md`. Change any verdict that doesn't survive, or mark it contested.
+- Every location carries `file:line`. Every drift claim quotes the lines that disagree. Every
+  Eliminate names what you searched to show nothing depends on the code.
+- Tag every verdict's confidence. **Observed**: the code and an index row with an authority show
+  it. **Inferred**: it rests on an inferred row or an assumption about callers or runtime; name the
+  assumption. **Speculative** gets no verdict; it goes under "Worth asking the team".
 
 Don't silently drop clusters that didn't survive Step 3 or 4: a documented "leave this duplicated"
 tells a reviewer what NOT to spend time on.
@@ -214,7 +224,8 @@ tells a reviewer what NOT to spend time on.
  D drift defects; C missing concepts>
 
 ## Drift — canon concepts whose copies disagree
-<one line per divergence: the rule, the copies, which one is right.
+<one line per divergence: the rule, the copies (file:line, with the lines that
+ disagree quoted), which one is right.
  Omit this section if there is none.>
 
 ## Missing concepts
@@ -236,6 +247,7 @@ tells a reviewer what NOT to spend time on.
 **Change test:** <the likely change, sites touched before → after —
  only for Extract and Absorb>
 **Verdict:** Extract / Absorb / Leave duplicated / Eliminate / Coincidental — no action
+**Confidence:** Observed / Inferred — <the assumption it rests on>
 **Proposed abstraction** (only for Extract and Absorb):
   - Form: <parameter / template / strategy / state machine / table / ...>
   - Name: `<name>`
@@ -244,6 +256,9 @@ tells a reviewer what NOT to spend time on.
 **Reasoning:** <2-4 sentences — why this verdict, referencing Steps 3-4>
 
 <repeat per cluster, strongest/most-confident recommendations first>
+
+## Worth asking the team
+<speculative findings and inferred index rows the user should confirm>
 ```
 
 ## Tone

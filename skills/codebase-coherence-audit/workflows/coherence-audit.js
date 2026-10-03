@@ -77,6 +77,7 @@ const VERDICT = {
     index: { enum: ['canon', 'variation by design', 'unowned', 'not in index'] },
     authority: { type: 'string' },
     verdict: { enum: ['Extract', 'Absorb', 'Leave duplicated', 'Eliminate', 'Coincidental'] },
+    confidence: { type: 'string', description: 'Observed, or "Inferred: <the assumption>"' },
     variationShape: { type: 'string', description: 'what varies between sites, e.g. value, flag, step, algorithm, state, data' },
     form: { type: 'string', description: 'abstraction form, for Extract/Absorb only' },
     name: { type: 'string' },
@@ -86,7 +87,7 @@ const VERDICT = {
     drift: { type: 'array', items: { type: 'string' }, description: 'canon rules the copies disagree on, and which copy is right' },
     reasoning: { type: 'string' },
   },
-  required: ['function', 'index', 'authority', 'verdict', 'variationShape', 'drift', 'reasoning'],
+  required: ['function', 'index', 'authority', 'verdict', 'confidence', 'variationShape', 'drift', 'reasoning'],
 }
 
 const CHALLENGE = {
