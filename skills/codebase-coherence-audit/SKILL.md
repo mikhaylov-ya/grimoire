@@ -206,7 +206,8 @@ abstraction proposed yet".
   assumption. **Speculative** gets no verdict; it goes under "Worth asking the team".
 
 Don't silently drop clusters that didn't survive Step 3 or 4: a documented "leave this duplicated"
-tells a reviewer what NOT to spend time on.
+tells a reviewer what NOT to spend time on. Keep those entries short — the long form is only for
+the verdicts that move code.
 
 ```markdown
 # Coherence Audit — <scope>
@@ -232,28 +233,30 @@ tells a reviewer what NOT to spend time on.
 <per concept: name, what it would own, the clusters it absorbs.
  Omit this section if there is none.>
 
-## Cluster <n>: <short description>
+## Cluster <n>: <short description> — <verdict>
 **Locations:** <file:lines, file:lines, ...>
 **Similarity:** <how it was found — e.g. "97% token match", "NCD 0.08",
  or "functional: same function card, verified pairwise">
 **Function:** <verb + domain noun, in the business's words>
 **Index:** <canon / variation by design / unowned — and the authority for that>
-**Essential?** <yes, and who owns it / no, and what depends on it>
+**Confidence:** Observed / Inferred — <the assumption it rests on>
+**Reasoning:** <2-4 sentences — why this verdict>
+
+<Eliminate adds:>
+**Dies with it:** <i18n keys, tests, fixtures, routes>
+**Searched:** <what you searched to show nothing depends on it>
+
+<Extract and Absorb add:>
 **Varies by:** <what differs between sites, and its shape — value, flag,
  step, algorithm, state, data; the commonality/variability matrix
  for functional clusters>
-**MDL estimate:** <abstraction cost vs. duplicated cost, one line each —
- only for Extract and Absorb>
-**Change test:** <the likely change, sites touched before → after —
- only for Extract and Absorb>
-**Verdict:** Extract / Absorb / Leave duplicated / Eliminate / Coincidental — no action
-**Confidence:** Observed / Inferred — <the assumption it rests on>
-**Proposed abstraction** (only for Extract and Absorb):
+**MDL estimate:** <abstraction cost vs. duplicated cost, one line each>
+**Change test:** <the likely change, sites touched before → after>
+**Proposed abstraction:**
   - Form: <parameter / template / strategy / state machine / table / ...>
-  - Name: `<name>`
+  - Name: `<name>` — for Absorb, the existing owner
   - Signature sketch
   - What stays as call-site-specific glue
-**Reasoning:** <2-4 sentences — why this verdict, referencing Steps 3-4>
 
 <repeat per cluster, strongest/most-confident recommendations first>
 

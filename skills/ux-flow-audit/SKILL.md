@@ -114,8 +114,17 @@ transitions and look for states with no exit and states nothing can reach.
 
 ## Step 4 — Evaluate
 
-Walk each step against `references/interaction-cost.md`, each graph edge the flow crosses against
-`references/entity-graph.md`, then `references/flow-checks.md`.
+Don't run every step through every check — that produces a filled-in checklist, not five sharp
+findings. Work from the diff outward:
+
+1. **Explain the diff.** Each interaction the actual path has and the ideal path lacks is a
+   candidate. Find the catalog entry (`references/interaction-cost.md`) or graph check
+   (`references/entity-graph.md`) that explains it. Most findings come from here.
+2. **Sweep the tells.** Many tells are greppable: `confirm(` on cheap actions, a `list_all` feeding a
+   picker, a form reset in an error handler, a redirect to an index after a mutation, a loop of
+   single-item calls to an endpoint that accepts an array. One pass per flow; dig only into hits.
+3. **Then `references/flow-checks.md`** — the flow graph and the walkthrough questions always; the
+   state-coverage, form-path and WCAG tables only for the screens they apply to.
 
 Use the cognitive walkthrough questions as the lens, not heuristic labels. "At this step, will the
 user know what to do, and will they know it worked?" produces specific findings; "does this violate

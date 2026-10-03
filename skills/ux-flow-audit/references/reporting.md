@@ -10,8 +10,14 @@
 | 3 | Major. Users are meaningfully slowed or make errors |
 | 4 | Catastrophic. Task can't be completed, or work/money is lost |
 
-Score as **frequency × impact × persistence**. One extra click on a flow run fifty times a day can
-outrank a confusing screen seen once.
+Score in two moves:
+
+1. **Impact** — what happens to the user when it bites, on the 1–4 scale above.
+2. **Frequency and persistence** — raise it one if the flow runs many times a day or every user hits
+   it every time; lower it one if it's rare and easy to work around. Never above 3 this way: 4 is
+   for the cases listed below only.
+
+So one extra click on a flow run fifty times a day can outrank a confusing screen seen once.
 
 Severity is the least reliable judgment in this kind of audit, so: sanity-check your 3s and 4s
 against each other before publishing, don't inflate to make the report feel valuable, take the
@@ -70,14 +76,16 @@ Ranked by severity, then frequency.
 **Fix:** [smallest change that removes it]
 
 ## State coverage
+Only screens with a gap that meets the bar in flow-checks.md; omit the section if none.
 | Screen | Loading | Empty | Error | Terminal | Denied |
 |---|---|---|---|---|---|
 
-## Prioritized fixes
-1. [F4] — [one line] — severity 4, ~[effort]
-
-## Quick wins
-Fixable in under an hour: [F1, F7, F9]
+## Fix order
+By severity, then cheapest first. Effort: ⚡ under an hour · S a day · M a few days · L needs
+backend or design work.
+| Finding | Fix, in one line | Severity | Effort |
+|---|---|---|---|
+| F4 | [fix] | 4 | S |
 
 ## Worth testing with users
 Hypotheses the code suggests but can't prove. Not findings.
