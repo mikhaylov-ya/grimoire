@@ -35,7 +35,7 @@ In the audit you don't perform these edits — you do them in your head to find 
 
 An abstraction passes when it does all of these:
 
-- **Hides a decision likely to change.** Name one or two plausible future changes and count the sites each touches before and after; at least one must become local (Parnas 1972; Beck, coupling = changes that propagate). This is the `changeTest` line in the report and it outranks MDL when they disagree.
+- **Hides a decision likely to change.** Name one or two plausible future changes and count the sites each touches before and after; at least one must become local (Parnas 1972; Beck, coupling = changes that propagate). This is the change-test line in the report; it outranks MDL (SKILL.md Step 4, "When the signals disagree").
 - **Is deep.** Much behaviour behind a small interface. A wrapper whose interface is as big as its body is a shallow module (Ousterhout).
 - **Every parameter earns its place.** Each takes 2+ distinct values across real call sites; no mode flags; no branch keyed on which caller is calling (Metz).
 - **Names a domain concept.** A name that needs "And", "Or", "Helper", "Common" or "Generic" is grouping by shape.

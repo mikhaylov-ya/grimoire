@@ -87,7 +87,8 @@ rows from, and a worked example. One page, 5–15 rows, in three sections:
 
 - **Canon** — one rule everywhere. Divergence between sites is a defect, reportable on its own.
 - **Variation by design** — looks alike, must differ. Convergence is the defect; never merge.
-- **Unowned** — a function performed in several places that no component owns.
+- **Unowned** — a function performed in several places that no component owns. It ends as Extract,
+  Absorb or Eliminate; the nearest existing owner decides which.
 
 Harvest it from docs, cited specs, test names and — first of all — comments; ask the user only
 about what remains. An empty index (pure utilities, generated code) is a one-line finding, not a
@@ -132,10 +133,10 @@ user-facing action they serve, and down to what they persist or emit.
 
 | Function | Ownership | Index says | Verdict |
 |---|---|---|---|
-| One function across sites, essential | no single owner | canon | **Extract** — create the owner |
-| One function across sites, essential | one site already generalizes it, or a component already exists | canon | **Absorb** — move the sites onto the existing owner; don't invent a second one |
+| One function across sites, essential | no single owner | canon or unowned | **Extract** — create the owner |
+| One function across sites, essential | one site already generalizes it, or a component already exists | canon or unowned | **Absorb** — move the sites onto the existing owner; don't invent a second one |
 | One function, and the differences *are* the function | each site owns its own policy | variation by design | **Leave duplicated** |
-| No one's process depends on it | — | unowned / dead | **Eliminate** — delete, and say what else dies with it (i18n keys, tests, fixtures) |
+| No one's process depends on it | — | any | **Eliminate** — delete, and say what else dies with it (i18n keys, tests, fixtures) |
 | Different functions that happen to share a shape | separate by design | — | **Coincidental — no action** |
 
 Token-identical blocks can serve unrelated functions ("is this email well-formed" versus "is this
@@ -168,11 +169,18 @@ Extract and Absorb only. Read `references/abstraction-forms.md` first.
    branch per site means *this form* failed — try a form that carries the variation (data → table,
    steps in a fixed skeleton → template) before falling back to "leave duplicated".
 
-When MDL is near break-even, the function lens breaks the tie: an essential function with one owner
-is worth centralizing at par, because the recurring cost is the multi-file edit every future change
-forces. Weigh **volatility** too: sites about to diverge for product reasons argue for leaving the
-duplication even when MDL favors merging. The index's variation section usually shows this first;
-ask the user if it doesn't.
+**When the signals disagree**, each one outranks those below it:
+
+1. **Function and index** (Step 3) decide whether a merge is allowed at all. Coincidental and
+   variation by design never merge, however good the MDL.
+2. **Volatility.** Sites known to be about to diverge for product reasons stay duplicated even when
+   everything below favors merging — abstracting them relocates the coming pain. The index's
+   variation section usually shows this; ask the user if it doesn't.
+3. **The change test.** An abstraction that makes no likely change local is shape-matching, whatever
+   MDL says.
+4. **MDL** decides the rest, and picks between candidate forms. Near break-even, an essential
+   function with one owner is worth centralizing at par: the recurring cost is the multi-file edit
+   every future change forces. Say so in the report when you lean on this.
 
 ## Step 5 — Name it by its function
 

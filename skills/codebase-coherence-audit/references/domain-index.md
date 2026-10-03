@@ -24,7 +24,7 @@ Concepts whose whole purpose is to differ per site. Convergence is the defect. R
 
 ### Unowned — a function with no home
 
-Functions performed in several places where no component's job it is. These produce **Absorb** and **Eliminate** verdicts rather than **Extract**.
+Functions performed in several places where no component's job it is. Each ends as **Absorb** (a site or component already holds the general form — move the rest onto it), **Extract** (nothing does — create the owner) or **Eliminate** (nothing needs the function). Record the nearest existing owner: it decides between the first two.
 
 | Function | Performed at | Nearest existing owner |
 |---|---|---|
