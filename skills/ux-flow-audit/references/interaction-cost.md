@@ -43,11 +43,8 @@ submitted field. The user is typing into a void.
 **A4 — Re-entry after a session boundary.** *Tell:* short token expiry with no draft persistence,
 on forms behind an auth guard.
 
-**A5 — Asking for what a chosen record already names.** The user picked a record; that record
-carries the very value the next field asks for. *Tell:* a select handler that stores only the id it
-received, when the row it received carries a foreign key to the entity the form asks about next.
-*Fix:* prefill it, visibly and editably, and only while the user hasn't answered themselves.
-See `entity-graph.md` — this and B5b are the two the per-screen walk cannot find on its own.
+**A5 — Asking for what a chosen record already names.** The user picked a record that carries the
+value the next field asks for. Tell and fix: `entity-graph.md` check 1, *Propagation*.
 
 ## B. Unnecessary decisions
 
@@ -55,11 +52,8 @@ See `entity-graph.md` — this and B5b are the two the per-screen walk cannot fi
 prior answer until one survives. *Fix:* auto-select and render as text.
 
 **B5b — Picker not narrowed by what's already chosen.** The user searches a whole catalogue for the
-handful of rows compatible with a record they picked two steps ago. *Tell:* compare the query's
-filter arguments against what the draft already holds — a `where` of `name ILIKE '%search%'` in a
-form that holds a product id, where the product→candidate relation exists, is proof by omission.
-*Fix:* filter by the anchor by default, with a visible "search all" escape — a narrowed picker with
-no way out is a trap when the anchor is wrong or the data is thin. See `entity-graph.md`.
+few rows compatible with a record picked earlier. Tell and fix: `entity-graph.md` check 2,
+*Narrowing*.
 
 **B6 — No default where an obvious one exists.** *Tell:* required selects, dates or quantities
 initialized empty. The candidate is usually the most common option, today, 1, the last-used value,

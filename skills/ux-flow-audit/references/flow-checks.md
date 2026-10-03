@@ -8,10 +8,8 @@ answer to a concrete question is useful; one phrased as a heuristic name is not.
 For each step in a mapped flow, four questions:
 
 1. **Will the user be trying to do the right thing here?** Does this step match what someone
-   pursuing the goal expects next, or has the system inserted its own model of the task? *Tells that
-   it's the schema's model:* a UI entity that exists only because of a join table, step order that
-   follows write order, a flow whose shape mirrors the API surface exactly, a required field that
-   exists because the column is `NOT NULL`.
+   pursuing the goal expects next, or has the system inserted its own model of the task? The tells
+   are in SKILL.md, "Whose goal are you auditing against?".
 2. **Will they see the action is available?** Is the control that advances the flow actually
    rendered in this state — not disabled without explanation, not gated on an invisible condition?
 3. **Will they connect the action to the outcome?** Does the label describe the outcome or the

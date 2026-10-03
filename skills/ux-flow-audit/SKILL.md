@@ -53,9 +53,10 @@ So:
 - **State each goal as a hypothesis with its evidence**, in the report. Not as background.
 - **Mark findings whose validity depends on an assumed goal.** If the goal is wrong, the finding is
   wrong; the reader needs to know which ones those are.
-- **Look for the tell that the code models the schema, not the task:** entities in the UI that
-  exist only because of a join table, steps ordered by write order rather than by how someone
-  thinks about the job, a flow whose shape matches the API surface exactly.
+- **Look for the tell that the code models the schema, not the task:** a UI entity that exists
+  only because of a join table, steps ordered by write order rather than by how someone thinks
+  about the job, a flow whose shape mirrors the API surface, a required field that exists because
+  the column is `NOT NULL`.
 
 This cuts against aggressive step-removal, deliberately. When the goal is uncertain, a default that
 serves the 90% you imagined can trap the 10% you didn't. Prefer *default plus visible override* to
@@ -65,11 +66,10 @@ removing the choice, and say when a recommendation is only safe if the goal hypo
 
 ### 1. Orient
 Read the project's own docs first — `CLAUDE.md`, architecture notes, ADRs, README, and above all
-the **product spec, glossary or context map** if one exists. A well-documented repo has already
-described its flows and often names the intended journey outright ("users come from the substance
-page and want to synthesize that substance"); don't re-derive what's written down, and don't
-contradict it without evidence. Where the code diverges from a written intended path, that's a
-spec defect and outranks anything you infer.
+the **product spec, glossary or context map** if one exists. A well-documented repo often names the
+intended journey outright; don't re-derive what's written down, and don't contradict it without
+evidence. Where the code diverges from a written intended path, that's a spec defect and outranks
+anything you infer (`references/entity-graph.md`, "read the domain docs").
 
 Then locate flows: router config → e2e or `.feature` tests (the team's own description of intended
 journeys) → form and validation schemas → API layer → i18n keys and analytics events (these
@@ -107,9 +107,7 @@ The audit is the diff. Doing it in this order matters: derived backwards from a 
 target is capped by whatever the catalog happens to catch, and a flow where nothing is individually
 wrong but the whole thing is three times longer than necessary passes clean. Ideal-first catches it.
 
-Also record, per screen, **decision density**: how many choices the screen demands at once versus
-how many are actually required to advance. A screen with nine inputs where two would let the user
-proceed is a finding even when every individual field is defensible.
+Also record **decision density** per screen (`references/interaction-cost.md`, "Counting cost").
 
 Where a flow is a real state machine (wizards, checkout, upload pipelines), sketch its states and
 transitions and look for states with no exit and states nothing can reach.
@@ -139,8 +137,7 @@ Follow `references/reporting.md` exactly.
 
 - **Evidence or it doesn't ship.** Every finding carries `path/file.ext:42` and the snippet proving
   it. Uncitable observations go in "worth testing with users."
-- **Tag confidence.** *Observed* (explicit in code) / *Inferred* (implied, state the assumption) /
-  *Speculative* (out of the findings table entirely).
+- **Tag confidence** — Observed / Inferred / Speculative, defined in `references/reporting.md`.
 - **Quantify against the ideal.** "9 interactions where 4 would do" beats "feels heavy."
 - **Flag goal-dependence.** If a finding only holds under an assumed user goal, mark it and name the
   assumption.
