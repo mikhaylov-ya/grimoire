@@ -1,6 +1,13 @@
 ---
 name: ux-flow-audit
-description: Audits the logic-level usability of a web app by reading its source code. Reconstructs the real user flows from routes, state, forms and API calls, then finds where users are made to work harder than necessary — excess clicks and selects, redundant data entry, pointless confirmations, missing bulk actions, work-losing navigation, dead ends and unreachable states. Reads the entity graph too, so it catches values a chosen record already names but the next step still asks for, and pickers left unfiltered by what the user picked earlier. Framework-agnostic. Use this skill whenever the user asks to review, audit, critique or sanity-check the UX, usability, user flows or user journeys of a codebase, asks whether a flow makes sense, asks how to reduce friction or clicks or steps, says a flow feels clunky, slow or annoying, or wants a UX pass on a feature — even if they never say the word "usability". Do NOT use for visual, pixel or styling critique, for pure WCAG compliance scans, or for writing new features.
+description: >
+  Audits the logic-level usability of a web app by reading its source: reconstructs real user
+  flows from routes, state, forms and API calls, and finds where users work harder than necessary
+  — excess clicks, re-entered data, values a chosen record already implies, unfiltered pickers,
+  pointless confirmations, missing bulk actions, lost work, dead ends. Use when the user asks to
+  review or audit the UX, usability or user flows of a codebase, or says a flow feels clunky or
+  has too many steps, even without the word "usability". Not for visual or styling critique, WCAG
+  compliance scans, or building features.
 ---
 
 # UX Flow Audit

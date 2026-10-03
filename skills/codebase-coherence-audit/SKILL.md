@@ -1,27 +1,13 @@
 ---
 name: codebase-coherence-audit
 description: >
-  Audit a codebase (or a scoped part of one) for families of similar code —
-  both code that looks alike and code that performs the same business
-  function while looking different — and turn the families worth merging
-  into abstractions shaped around real domain concepts, in the right form
-  (parameter, template, strategy, state machine, table, ...). Decides WHICH
-  similarity is worth abstracting versus which should stay duplicated. Use
-  this whenever the user asks to find repeated, copy-pasted, structurally
-  or functionally similar code, wants abstraction or refactoring proposals,
-  asks for a coherence audit, a DRY audit, or a "smells repetitive" review,
-  asks what domain concept is missing from a codebase, or wants help naming
-  a shared abstraction across similar call sites. Make sure to trigger this
-  even when the user doesn't say "duplicate" explicitly but describes
-  symptoms of it — e.g. "these five functions all do basically the same
-  thing," "I keep copy-pasting this block," "is there a cleaner way to
-  structure these handlers," or "help me find what to extract into a shared
-  utility." Also use it when the question is whether a divergence is
-  intentional — "are these supposed to be the same?", "did these two copies
-  drift?", "why does each page do this differently?" — or whether a piece of
-  code earns its place at all. This skill explicitly guards against
-  over-abstraction: it will sometimes recommend LEAVING code duplicated, and
-  it always negotiates scope before scanning.
+  Audits a codebase, or a scoped part of it, for families of similar code — by shape (clone
+  detection, compression distance) and by business function — and decides per family whether to
+  extract, absorb into an existing owner, leave duplicated or delete, naming any abstraction after
+  a domain concept. Use when the user asks to find duplicated, copy-pasted or repetitive code,
+  wants DRY, refactoring or abstraction proposals, says several functions or handlers "do
+  basically the same thing", asks whether copies drifted or are meant to differ, or asks what
+  domain concept is missing. Negotiates scope before scanning.
 ---
 
 # Codebase Coherence Audit
