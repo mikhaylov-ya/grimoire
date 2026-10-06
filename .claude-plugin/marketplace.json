@@ -8,7 +8,7 @@
     {
       "name": "grimoire",
       "source": "./",
-      "description": "Code-reading audit skills: UX flow friction and codebase duplication/coherence."
+      "description": "Code-reading skills: UX flow audit, usability brainstorm, and codebase duplication/coherence audit."
     }
   ]
 }

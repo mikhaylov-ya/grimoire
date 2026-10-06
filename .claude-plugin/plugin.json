@@ -1,7 +1,7 @@
 {
   "name": "grimoire",
-  "version": "1.0.0",
-  "description": "Code-reading audit skills: UX flow friction and codebase duplication/coherence.",
+  "version": "1.1.0",
+  "description": "Code-reading skills: UX flow audit, usability brainstorm, and codebase duplication/coherence audit.",
   "author": {
     "name": "Yaroslav Mikhaylov"
   }
