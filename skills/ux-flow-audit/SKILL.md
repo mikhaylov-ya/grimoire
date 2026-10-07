@@ -7,8 +7,8 @@ description: >
   pointless confirmations, missing bulk actions, lost work, dead ends. Use when the user asks to
   review or audit the UX, usability or user flows of a codebase, or says a flow feels clunky or
   has too many steps, even without the word "usability". Not for visual or styling critique, WCAG
-  compliance scans, or building features; for open-ended improvement ideas, use
-  usability-brainstorm.
+  compliance scans, or building features; for open-ended ideas from code plus complaints and user
+  context, use usability-brainstorm.
 ---
 
 # UX Flow Audit

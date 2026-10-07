@@ -17,7 +17,10 @@ family it mainly serves.
 | 8. Reframe | thin or conflicted targets | What if we changed the question? |
 
 Run families 1–7 on every target they fit, then Reframe on the targets where ideas came out thin,
-conflicted or all Tweaks.
+conflicted or all Tweaks. In a fan-out, Reframe is its own pass after the merge, for that reason.
+
+Bare file names below (`interaction-cost.md`, `entity-graph.md`, `flow-checks.md`) are in
+`../ux-flow-audit/references/`; each citation is glossed, so the operators stand without them.
 
 ## 1. Remove — the step does itself
 
@@ -28,7 +31,8 @@ that performed it doesn't exist. For a UI: the goal is reached and the step isn'
 - **Delete the step.** What if this field, screen or confirm didn't exist? What would the system
   need to know instead — and does it already know it: from the session, from the record chosen one
   relation away, from history, from a default? Detail: `entity-graph.md` checks 1–2 (propagation,
-  narrowing) and `interaction-cost.md` sections A–C.
+  narrowing) and `interaction-cost.md` sections A–C (redundant input, needless decisions, needless
+  steps).
 - **Use idle resources.** TRIZ's rule is to solve with what the system already has before adding
   anything. *Data* the app holds but ignores: last-used values, per-user frequency, the record's
   own history, relations. *Capability* the backend has and the UI hides: an endpoint that takes an
@@ -38,10 +42,11 @@ that performed it doesn't exist. For a UI: the goal is reached and the step isn'
 - **The system proposes, the user confirms.** Turn an input into a suggestion: prefilled and
   editable, options ranked by what this user picks, "same as last time".
 - **Move the work to when the user has the answer.** Ask at the moment of the related event, or
-  defer until something needs it (`interaction-cost.md` B4, C3).
+  defer until something needs it (`interaction-cost.md` B4, required fields that
+  needn't be; C3, gates before value).
 
-*Tells:* everything in `interaction-cost.md`; API parameters and endpoints no UI code calls; fields
-the backend derives anyway (A3); a store that remembers nothing between sessions.
+*Tells:* `interaction-cost.md` A–C; API parameters and endpoints no UI code calls; fields the
+backend derives anyway (A3); a store that remembers nothing between sessions.
 
 ## 2. Prevent — the mistake can't happen, or can't do damage
 
@@ -66,9 +71,9 @@ bug. Most are greppable:
 
 | Seam | Tell in code | Idea shape |
 |---|---|---|
-| Double submit | submit handler with no pending guard; non-idempotent POST | disable while pending; idempotency key |
-| Stale list after a mutation | mutation that doesn't invalidate or update the list's query | invalidate, or update the cache from the response |
-| Lost update | edit form with no version or ETag on a record several people edit | "changed by X since you opened it" on save |
+| Double submit | submit handler with no pending guard; non-idempotent POST (`flow-checks.md`, form paths) | disable while pending; idempotency key |
+| Stale list after a mutation | mutation that doesn't invalidate or update the list's query (C5) | invalidate, or update the cache from the response |
+| Lost update | edit form with no version or ETag on a record several people edit (`flow-checks.md`, Stale) | "changed by X since you opened it" on save |
 | Optimism without rollback | optimistic update with no restore in the error path | roll back and say what failed |
 | Out-of-order responses | fetch per keystroke, no abort or sequence check | abort the previous request; debounce |
 | Resubmit on back or refresh | POST that renders instead of redirecting; wizard state in memory | redirect after POST; state in URL or draft |
@@ -119,8 +124,9 @@ Ideas by stage of use:
 - **Stability** — frequent controls don't move between states; nothing shifts as data loads; no
   modes that change what a key does.
 
-*Tells:* `interaction-cost.md` E1–E2 and G1–G2; no key handlers anywhere; tables with no selection
-model; no duplicate endpoint; filters held in component state (D4).
+*Tells:* `interaction-cost.md` E1–E2 (no bulk actions, no accelerators) and G1–G2 (no search,
+buried actions); no key handlers anywhere; tables with no selection model; no duplicate endpoint;
+filters held in component state rather than the URL (D4).
 
 ## 5. Protect — interruptions don't cost work
 
@@ -137,7 +143,8 @@ desks, shops and the field, interruption is the normal state, not the exception.
 - **Long tasks** — imports and exports that keep running when the page closes, and say when
   they're done.
 
-*Tells:* `interaction-cost.md` A4, D1, D2, I2; form state only in component state; no
+*Tells:* `interaction-cost.md` A4 (re-entry after a session boundary), D1–D2 (input lost on a
+failed submit or on navigation), I2 (timeouts mid-task); form state only in component state; no
 `beforeunload` or router guard; an auth redirect with no return URL; uploads tied to a component's
 lifetime.
 
@@ -149,7 +156,8 @@ Soviet engineering psychology made the same point about operators (Lomov, *Че�
 being designed, not its surroundings.
 
 - **Walk it as them.** For each role × flow, walk the flow with that role's knowledge, device and
-  surroundings, asking the cognitive-walkthrough questions in `flow-checks.md`.
+  surroundings, asking the cognitive-walkthrough questions (`flow-checks.md`): will they try the
+  right thing, see the control, connect it to the outcome, and know it worked?
 - **Apply every context fact.** Each fact in the context sheet has a row in `context.md` with its
   design consequences and what to check in the code.
 - **Real data.** What do real records look like — long names, 5,000 rows, zero rows, Cyrillic, 30

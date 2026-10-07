@@ -2,8 +2,8 @@
 
 The brief is the situation model every idea is generated against and cited from. Write it to
 `<scratchpad>/brief.md` with stable row ids: **R** roles, **D** domain facts, **C** complaints,
-**K** capabilities. Ideas get **I** ids later. Keep each part short — the brief is a tool, not a
-deliverable; the report quotes only what the top picks need.
+**K** capabilities, **X** constraints. Ideas get **I** ids at clustering. Keep each part short —
+the brief is a tool, not a deliverable; the report quotes only what the top picks need.
 
 ## Context sheet
 
@@ -18,7 +18,8 @@ deliverable; the report quotes only what the top picks need.
 - **Source** is *given* (the user or the docs said so) or *assumed* (your domain inference). Keep
   both visible. A top pick that rests on an assumed row says so in the report.
 - Include roles the request doesn't mention but the code does: permission checks, role enums and
-  route guards list who else is in the app.
+  route guards list who else is in the app. A row inferred from the code stays *assumed*: the code
+  is the team's projection of its users, so it can't confirm ideas about that same code.
 
 ## Domain self-interview
 
@@ -44,6 +45,8 @@ domain common sense enters the brainstorm, so mark every answer *assumed* unless
    move their number get adopted; ideas that cost it get worked around.
 
 ## Feedback digest
+
+Skip this section when the user gave no feedback.
 
 One card per complaint, ticket or verbatim:
 
@@ -82,7 +85,7 @@ One card per complaint, ticket or verbatim:
 
 **Triangulate with the code.** For each card, find the code that would produce the experience:
 
-- **Found** — cite it. The cause is now Observed, and the card's ideas start from that line.
+- **Found** — cite it in the Cause column; the card's ideas start from that line.
 - **Not found, but explained by context** — name the context fact (Safari on iPad, 5,000 rows,
   decimal comma). The idea goes to the Fit family.
 - **Contradicted** — the code seems to do what they ask. The problem is discoverability or a
@@ -92,21 +95,38 @@ One card per complaint, ticket or verbatim:
 
 | Id | Capability | Where | In the UI? |
 |---|---|---|---|
-| K4 | batch status update — `PATCH /orders` takes `ids[]` | `api/orders.ts:120` | hidden: the list updates one row at a time |
+| K4 | batch status update — `PATCH /orders` takes `ids[]` | `api/orders.ts:120` | hidden — the list updates one row at a time |
+
+*In the UI?* is one of **no / partly / yes / hidden** (the API has it, the UI doesn't) — the same
+values grounding records for *Exists*.
 
 Search for: endpoints and mutations that take arrays; search, filter and sort parameters in the API
 compared with those the UI sends; undo, restore, soft delete; drafts and autosave; import and
 export; duplicate and templates; key handlers; notifications, emails and webhooks; saved views;
-the permission model; audit logs. Hidden and partial rows are ideas already half-built.
+the permission model; audit logs. *Hidden* and *partly* rows are ideas already half-built.
+
+## Constraints and appetite
+
+| Id | Constraint or appetite | Source |
+|---|---|---|
+| X1 | Backend frozen until Q3 — UI-only ideas ship first | given |
+| X2 | Wants quick wins this sprint, plus two bets to prototype | given |
+
+What can't change — backend, design system, regulated steps, a deadline — and what the user wants
+from the brainstorm. Feasibility checks against these rows, and picking weighs them.
 
 ## Flow sketches
 
 Per scoped flow, three lines and a count, in `ux-flow-audit` Step 3's order — graph, then ideal,
 then actual:
 
-> **Create order** — entities: customer → contract → product. Ideal 5 interactions; actual 12
-> across 2 screens. Gap: customer re-picked (C3), product picker unfiltered by contract, no
+> **Create order** (`src/orders/OrderForm.tsx`, `ProductPicker.tsx`) — entities: customer →
+> contract → product. Ideal 5 interactions; actual 12 across 2 screens. Gap: customer re-picked
+> (C3, `OrderForm.tsx:88`), product picker unfiltered by contract (`ProductPicker.tsx:40`), no
 > "add another".
+
+Name the files and the `path:line` of each gap, so lens agents open only what they cite instead of
+each re-reading the whole flow.
 
 Count with `../ux-flow-audit/references/interaction-cost.md`, "Counting cost". The gap is not the
 report here: each gap is a target for the lenses.

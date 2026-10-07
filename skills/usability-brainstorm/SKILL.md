@@ -7,7 +7,7 @@ description: >
   fewer user-facing errors and bugs, better fit to how people work — each tied to a complaint, code
   location or context fact, then picks top ideas and bold bets. Use when the user asks for UX or
   usability ideas, wants an app smoother or less error-prone, or shares complaints and asks what to
-  do. For provable defects only, use ux-flow-audit.
+  do. For evidence-only, ranked findings from the code alone, use ux-flow-audit.
 ---
 
 # Usability Brainstorm
@@ -16,10 +16,9 @@ Generate many good, *different* ideas for making an app easier to use, then pick
 building. The input is code plus whatever the user knows about the people using it: complaints,
 tickets, roles, devices, browsers, the room they work in.
 
-This is the divergent sibling of `ux-flow-audit`. The audit reports only what the code proves and
-ranks five sharp findings above twenty. The brainstorm is for range: its ideas are hypotheses, and a
-good bank holds small tweaks, new features and a few ideas that rethink the flow. Two disciplines
-keep range from turning into noise:
+This is the divergent sibling of `ux-flow-audit`, which reports only what the code proves. Here the
+ideas are hypotheses, and a good bank holds small tweaks, new features and a few ideas that rethink
+the flow. Two disciplines keep range from turning into noise:
 
 - **Anchored** — every idea is tied to something real: a complaint, a code location, a fact about
   the users' context, or a stated domain fact. An idea with no anchor is a guess.
@@ -27,14 +26,12 @@ keep range from turning into noise:
   shortcuts", "improve error messages", "add an onboarding tour" are what a brainstorm produces
   when it hasn't read the code. They are the main failure mode of this skill.
 
-The usability baseline is shared with `ux-flow-audit` — its interaction-cost catalog and
-entity-graph checks, in the sibling skill's `references/` (`../ux-flow-audit/references/` from this
-skill's directory). The creative operators come from TRIZ and Osborn's brainstorming rules; the
-view of the work beyond the screen comes from activity theory. `references/lenses.md` turns all of
-it into questions to ask of the code. If the sibling skill isn't installed, the summaries in
-`lenses.md` are enough.
+**Sibling references.** `lenses.md` and `context.md` cite three files from `ux-flow-audit` by bare
+name — `interaction-cost.md` (catalog codes such as A3 or D4), `entity-graph.md` and
+`flow-checks.md` — all at `../ux-flow-audit/references/` from this skill's directory. Every citation
+carries a short gloss, so the operators work without the sibling installed; the files add detail.
 
-## Step 0 — Brief
+## Step 0 — Intake
 
 Sort what the user gave you into four parts:
 
@@ -55,31 +52,44 @@ On a large codebase, go deep on 2–5 flows — the ones the complaints name fir
 repeated loop of the most important role — and run the cross-cutting lenses (Fit, Connect)
 app-wide. Say which flows you chose and why.
 
-## Step 1 — Understand
+## Step 1 — Write the brief
 
-Read `references/brief.md` first. Write a brief file to your scratchpad with five parts; the ideas
-cite its row ids, and fan-out agents read it.
+Read `references/brief.md`, then write `<scratchpad>/brief.md` with its six parts. Ideas cite the
+brief's row ids, and fan-out agents read it as their only shared input.
 
-- **Context sheet** — one row per role: goal, frequency, expertise, device and environment, stakes.
-  Facts from the user are *given*; your inferences are *assumed*.
-- **Domain primer** — answers to the domain self-interview in `brief.md`: the unit of work, its
-  rhythm, what happens before and after the app, what goes wrong in this work regardless of
-  software. This is where domain common sense enters, and it is a hypothesis until the user or the
-  docs confirm it.
-- **Feedback digest** — every complaint as a card: verbatim, the need behind it, role, flow, type,
-  suspected cause. Then find the code that produces each one. A complaint the code can't explain
-  points at the environment, the data or the user's mental model — say which.
-- **Capability inventory** — what the app can already do: bulk endpoints, search and filter
-  parameters, undo, drafts, exports, templates, shortcuts, notifications. Mark what the API supports
-  and the UI doesn't expose. Hidden capability is the cheapest source of ideas there is, and the
-  inventory stops you proposing what already exists.
-- **Flow sketches** — per scoped flow: the entity graph (a few entities and edges, from the
-  schema), then the ideal and the actual path with interaction counts, as in `ux-flow-audit`
-  Step 3. Light: enough to see the gap, not an audit.
+- **Context sheet** (R) — who uses it, given or assumed.
+- **Domain self-interview** (D) — domain common sense, assumed until confirmed.
+- **Feedback digest** (C) — each complaint traced to the code that produces it. Skip if no feedback.
+- **Capability inventory** (K) — what the app can already do; stops you proposing what exists.
+- **Constraints and appetite** (X) — what can't change, and what kind of ideas the user wants.
+- **Flow sketches** — per scoped flow, the gap between ideal and actual paths: the lens targets.
+
+### Execution mode — solo or fan-out
+
+Decide now, before generating. Ideas generated in one context anchor on the first few; isolating
+lens groups from each other's output is what keeps the bank wide.
+
+- **Solo** — the default. Run Steps 2–5 yourself, one lens group at a time, writing each group's
+  ideas to the bank before reading the next group's section of `lenses.md`.
+- **Fan-out** — 5+ flows, 4+ roles, or the user asks for maximum range. You keep Steps 0–1; the
+  roles in `references/roles.md` run the rest.
+
+A fan-out costs far more than a solo run: tell the user the plan and the agent count (4 lens groups,
+1 merge, 1 reframe, 4–8 area grounders, 1 synthesis — usually 11–15) and get a yes first. Launch
+with, in order of preference:
+
+1. **The Workflow tool** — `scriptPath: <this skill's directory>/workflows/usability-brainstorm.js`,
+   `args` = `{ skillDir, briefPath, scope, lensGroups }` (the script header documents each field).
+2. **The Agent tool** — the roles in `references/roles.md`, as subagents in the same order.
+3. **Solo**, if neither exists — say so.
+
+Either way the report is yours to check before handing it over: re-run the grounding checks on the
+top picks, quick wins and bold bets, and open every `path:line` they cite.
 
 ## Step 2 — Diverge
 
-Read `references/lenses.md` first, and `references/context.md` for the Fit family.
+Read `references/lenses.md`, and for the Fit family only the sections of `references/context.md`
+that match facts in the context sheet.
 
 1. **Generate first, judge later.** Write ideas down without filtering for feasibility; that is
    Step 3. Judging while generating kills the unusual ideas first, and they are the reason to
@@ -91,115 +101,45 @@ Read `references/lenses.md` first, and `references/context.md` for the Fit famil
    label. *Feature* — days to weeks: bulk edit, drafts, a narrowed picker. *Rethink* — changes the
    flow or its model: the system proposes and the user confirms; the step moves to another role;
    the form becomes a table.
-4. **Build on the best.** After the first pass, take the strongest handful and push each one: the
-   zero-interaction version, the version at 10× the data, the version for the other role. Merge
-   ideas that serve the same need into one stronger idea.
-5. **Record as you go** in a scratchpad idea bank, one line per idea: id, idea, family, scale,
-   target, anchor. Raw.
+4. **Build on the best.** After the first pass, push the strongest handful: the zero-interaction
+   version, the version at 10× the data, the version for the other role.
+5. **Record as you go** in a scratchpad idea bank, one line per idea: title, idea, family, scale,
+   target, anchors. Raw; **I** ids come at clustering.
 
-Before leaving the step, check coverage. These are checks, not quotas to pad: if a family has
-nothing to offer after an honest pass, write one line saying why.
-
-- Every complaint cluster has at least two ideas at different scales, one of them aimed at the
-  cause rather than the symptom.
-- Every role in the context sheet has ideas aimed at it — including roles nobody complained for.
-- At least six of the eight families contributed.
-- At least three ideas are Rethinks.
-
-A bank for three flows and two roles typically holds 40–80 raw ideas. Far fewer usually means the
-lenses were run on their own instead of on targets.
-
-## Execution mode — solo or fan-out
-
-One context anchors on its first ideas, and later ones drift towards them. People show the same
-effect: individuals who brainstorm alone and then pool their ideas out-produce groups who hear each
-other (Diehl & Stroebe, 1987). Parallel agents that never see each other's output are the same
-remedy.
-
-- **Solo** — up to ~4 flows and 2–3 roles. Run Steps 2–5 yourself.
-- **Fan-out** — a larger brief, or when the user asks for maximum range. You keep Steps 0–1, since
-  the brief needs one coherent view. Agents diverge by lens group, then merge, ground and converge.
-  The roles are defined in `references/roles.md`.
-
-For a fan-out, tell the user the plan and a rough agent count (one per lens group, one merge, one
-per opportunity area, one synthesis — usually 12–16), and get a yes first. Launch with, in order of
-preference:
-
-1. **The Workflow tool** — `scriptPath: <this skill's directory>/workflows/usability-brainstorm.js`,
-   `args` = `{ skillDir, briefPath, scope, lensGroups }` (the script header documents each field).
-2. **The Agent tool** — the roles in `references/roles.md`, as parallel subagents.
-3. **Solo** — if neither exists, say so, and run the families one at a time, writing each family's
-   ideas to the bank before reading the next family's section.
-
-Either way the report is yours to check before handing it over: re-run the Step 3 tests on every
-top pick, and open every `path:line` it cites.
+Then run Reframe (`lenses.md` §8) on the targets that came out thin, conflicted or all Tweaks, and
+check the bank against the coverage gate in `references/converge.md`. A bank for three flows and two
+roles typically holds 40–80 raw ideas; far fewer usually means the lenses ran on their own instead
+of on targets.
 
 ## Step 3 — Ground
 
-Read `references/converge.md` first. For every raw idea:
-
-1. **Does it exist?** Search the code. Exists — drop it, or, if a complaint shows nobody finds it,
-   turn it into a discoverability idea. Partly exists — say what's missing. The API has it and the
-   UI doesn't — say so; that idea just got cheap.
-2. **Anchor** — attach the citation: complaint id, `path:line`, role row, domain fact. None — drop
-   the idea, or move it to "Worth asking".
-3. **Swap test** — put another app's name in the idea. If it still reads true, make it name this
-   app's screen, role or domain noun, or drop it.
-4. **Feasibility** — what in the code supports or blocks it: the endpoint exists, it needs backend
-   work, it needs a schema change.
-5. **Who it might hurt** — another role, a less common goal, a safety, legal or data-integrity
-   guard. An idea that buys one role's speed with another role's errors is a contradiction: take it
-   back to the Reframe lens once before keeping or dropping it.
-
-Merge duplicates, keeping the strongest wording and every anchor.
+Read `references/converge.md`. Run its five grounding checks on every raw idea and record each
+outcome in the bank. Merge ideas that make the same change, keeping the strongest wording and every
+anchor; ideas that only serve the same need stay separate and meet again in one area.
 
 ## Step 4 — Converge
 
-Cluster the surviving ideas into opportunity areas named by the user need, not the feature. Score
-each idea on value, confidence and effort, as `converge.md` defines them. Then pick:
-
-- **Top picks** — 5–10, high value and at least medium confidence, any effort, spread across areas.
-- **Quick wins** — cheap, solid value, not already a top pick.
-- **Bold bets** — 2–3 Rethinks worth a prototype, each with what would have to be true.
-- **Tempting but wrong** — obvious ideas you rejected, and why: they hurt a role, remove a
-  deliberate safeguard, or already exist. This stops the team re-proposing them.
-
-Give each top pick and bold bet the cheapest way to check it: an analytics event that already
-exists, a log or database query, a five-user task test, a week behind a feature flag.
+Cluster, score and pick as `converge.md` defines: opportunity areas, value / confidence / effort,
+then top picks, quick wins, bold bets and "tempting but wrong", with a check-it line for each top
+pick and bold bet.
 
 ## Step 5 — Report
 
-Follow the template in `references/converge.md`. The top of the report is readable in two minutes;
-the full idea bank goes at the end.
+Follow the template in `converge.md`. The top of the report is readable in two minutes; the full
+idea bank goes at the end.
 
 ## Rules
 
-- **Every idea in the report passes Step 3**: it doesn't already exist, it has an anchor, and it
-  survives the swap test.
-- **Complaints are symptoms.** The user's own proposed fix is one idea among several, not the
-  brief. Keep it in the bank, labeled as theirs, and look for the need behind it.
-- **One loud complaint is not a trend.** Weigh by the number of reporters and frequency where the
-  feedback says; write "unknown" where it doesn't.
+- **Every idea in the report passed Step 3.**
+- **Read feedback as `brief.md` says** — the need behind the ask, the signal, say versus do. The
+  user's own proposed fix is one idea among several, labeled as theirs.
 - **Assumed is never presented as given.** Domain and context inferences carry the label all the way
   into the report, and "Assumptions that matter" names those the top picks rest on.
-- **Ideas, not findings.** Write "could", give the anchor, and state confidence. A defect the code
-  proves is still stated as a defect and fixed first; for a proof-only pass, point to
-  `ux-flow-audit`.
+- **Ideas, not findings.** Write "could", give the anchor, and let the confidence letter carry the
+  uncertainty. A defect the code proves goes in the report's "Defects found" block, one line each,
+  and is not scored as an idea; for a proof-only pass, point to `ux-flow-audit`.
 - **Deliberate friction stays.** Legal consent, guards on irreversible actions and fraud checks are
   made cheaper — undo, preview, a smarter condition — never removed.
 - **Visual ideas are allowed** when a complaint or a context fact anchors them, flagged "check the
   rendered screen": the code can't show how it looks.
 - **Read-only.** Brainstorm and report; don't implement unless asked separately.
-
-## References
-
-- `references/brief.md` — context sheet, domain self-interview, feedback digest, capability
-  inventory. Read before Step 1.
-- `references/lenses.md` — the eight lens families and their operators, with the code tells for
-  each. Read before Step 2.
-- `references/context.md` — context facts (devices, browsers, network, environment, people,
-  locale) mapped to design consequences and what to check in the code. Read with the Fit family.
-- `references/converge.md` — grounding, scoring, picking, report template. Read before Step 3.
-- `references/roles.md` — fan-out roles. Read when you are one of them.
-- `../ux-flow-audit/references/interaction-cost.md` and `entity-graph.md` — the Remove family's
-  detail.

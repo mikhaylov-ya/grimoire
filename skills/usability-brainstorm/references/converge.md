@@ -1,4 +1,7 @@
-# Ground, converge, report — read before Step 3
+# Ground, converge, report — read at the end of Step 2
+
+Owns every rule for Steps 3–5: anchors, grounding, coverage, clustering, scoring, picking, the
+report. SKILL.md and roles.md point here rather than restate them.
 
 ## Anchors
 
@@ -16,22 +19,40 @@ An idea whose only anchors are assumed is kept only if it is specific and the as
 
 ## Grounding checks
 
-Run all five on every raw idea (SKILL.md Step 3), and record the outcome in the bank:
+Run all five on every raw idea, and record the outcome in the bank:
 
-1. **Exists** — no / partly / yes / hidden capability. "Yes" is dropped unless a complaint shows
-   nobody finds it; then the idea becomes making it discoverable.
-2. **Anchors** — as above.
-3. **Swap test** — with another app's name in it, does the idea still read true? Then it names
-   nothing from this app yet.
-4. **Feasibility** — what supports or blocks it: an existing endpoint, backend work, a schema
-   change, a design-system gap.
-5. **Who it hurts** — a role, a less common goal, a deliberate guard.
+1. **Exists** — search the code: no / partly / yes / hidden (the API has it, the UI doesn't).
+   *Yes* is dropped, unless a complaint shows nobody finds it — then the idea becomes making it
+   discoverable. *Partly*: say what's missing. *Hidden*: say so; that idea just got cheap.
+2. **Anchors** — attach at least one, as above. None: drop it, or move it to "Worth asking".
+3. **Swap test** — put another app's name in the idea. If it still reads true, the idea **fails**:
+   make it name this app's screen, role or domain noun, or drop it.
+4. **Feasibility** — what in the code supports or blocks it: an existing endpoint, backend work, a
+   schema change, a design-system gap — and the constraints in the brief (X rows).
+5. **Who it hurts** — another role, a less common goal, a safety, legal or data-integrity guard. An
+   idea that buys one role's speed with another role's errors is a contradiction: try one Reframe
+   (`lenses.md` §8) before keeping or dropping it.
+
+A dropped idea keeps its reason — exists, unanchored, fails the swap test, hurts a role, removes a
+guard. The last two feed "Tempting but wrong".
+
+## Coverage gate
+
+Solo: run it at the end of Step 2 and fill gaps with real ideas. Fan-out: the Synthesizer runs it
+on the merged bank and reports the gaps. Never pad to pass it:
+
+- every complaint cluster has at least two ideas at different scales, one aimed at the cause rather
+  than the symptom;
+- every role in the context sheet has ideas aimed at it, including roles nobody complained for;
+- every family has ideas, or one line saying why it has nothing to offer here;
+- at least three ideas are Rethinks.
 
 ## Clustering
 
 Group the ideas into 4–8 **opportunity areas**, each named by the user need it serves, in the
 users' words: "Account managers re-type what the contract already says", not "Prefill". An idea
-belongs to one area. An area with one idea is usually part of another.
+belongs to one area. An area with one idea is usually part of another. Number the ideas **I1, I2,
+…** across all areas.
 
 ## Scoring
 
@@ -41,10 +62,9 @@ doesn't have, and invented numbers look more certain than they are.
 - **Value — H / M / L.** Who (how many users, how much the brief weights their role) × how often
   (per day versus once) × how much (interactions saved, errors prevented, the worst outcome
   avoided). Quote interaction counts from the flow sketches where you have them.
-- **Confidence — H / M / L.** High: a complaint and the code agree. Medium: one strong anchor.
-  Low: assumed context or domain only.
+- **Confidence — H / M / L**, read off the anchor table. H: a strongest anchor. M: at least one
+  strong or medium anchor. L: weak anchors only.
 - **Effort — ⚡ / S / M / L.** Under an hour · a day · a few days · needs backend or design work.
-  The same scale as `ux-flow-audit`.
 
 ## Picking
 
@@ -54,8 +74,10 @@ doesn't have, and invented numbers look more certain than they are.
 - **Bold bets** — 2–3 Rethinks, chosen for upside rather than certainty. Each states what would
   have to be true for it to work, and the cheapest test of that.
 - **Tempting but wrong** — the obvious ideas you considered and rejected: they hurt another role,
-  remove a deliberate guard, already exist, or fix a symptom of a cause another idea removes.
-- Everything else that survived grounding stays in the bank.
+  remove a deliberate guard, already exist, or fix a symptom of a cause another kept idea removes
+  (only visible across areas, so the picker judges this one).
+- Everything else that survived grounding stays in the bank. Ideas that were never grounded go
+  only to the bank, marked *ungrounded*.
 
 **Variants.** When one idea has a cheaper and a bigger version, keep it as one entry with
 *Smaller* and *Bigger* lines rather than two competing entries.
@@ -79,6 +101,10 @@ Assumptions that matter: [the assumed facts the top picks rest on]
 ## What the feedback says
 One line per complaint cluster: the need behind it, the signal, and the cause — `path:line` if
 found in code, otherwise the context fact or mental model that explains it.
+
+## Defects found
+Bugs the code proves, met while reading — one line each: `path:line`, what breaks, the fix. Not
+scored as ideas. Omit if none.
 
 ## Top picks
 
@@ -115,7 +141,7 @@ Grouped by area; every idea that survived grounding.
 
 ## Coverage
 Complaints → ideas: C1 → I3, I12 · C2 → I7 · C5 → none, outside UX (pricing).
-Families with no ideas: [family — why].
+Coverage gate: [each gap — roles, families or scales with nothing, and why].
 Not determinable from source: rendered layout, real data, actual latency, what users really do.
 
 ## Worth asking

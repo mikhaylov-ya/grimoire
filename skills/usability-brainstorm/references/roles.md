@@ -1,48 +1,54 @@
 # Fan-out roles — read when you are one of them
 
-The fan-out splits SKILL.md Steps 2–5 across agents; the main agent keeps Steps 0–1 and checks the
-report. `workflows/usability-brainstorm.js` launches these roles and enforces their output
-schemas; without the Workflow tool, launch them as subagents with the same instructions. Every
-role:
+The fan-out runs SKILL.md Steps 2–5 across agents; the main agent keeps Steps 0–1 and checks the
+report. `workflows/usability-brainstorm.js` launches these roles in order — Lens agents in
+parallel, Merge, Reframe, Grounders in parallel, Synthesizer — and enforces their output schemas.
+Without the Workflow tool, launch them as subagents in the same order. Every role:
 
-- reads the brief first — it is the authority on roles, complaints, capabilities and domain facts,
-  and the source of the ids that anchors cite;
+- reads the brief first — the authority on roles, complaints, capabilities, constraints and domain
+  facts, and the source of the ids anchors cite;
+- reads only the files its section names;
 - is read-only: no file is edited, created or deleted;
-- cites anchors as `converge.md` defines them.
+- cites anchors as `converge.md`, Anchors, defines them.
 
 ## Lens — one per lens group
 
-SKILL.md Step 2 and your families' sections of `lenses.md`; `context.md` too if Fit is yours.
+SKILL.md Step 2, items 1–5; your families' sections of `lenses.md`; if Fit is yours, the sections
+of `context.md` that match the context sheet.
 
 - Apply your families to every target in the brief: each complaint cluster, each step of each flow
   sketch, each role, each entity edge. Skip a target only when none of your operators fits it.
-- Generate, don't judge. Feasibility is someone else's job; range is yours. Unusual ideas are the
-  reason you run in isolation from the other lens agents.
-- Give several ideas per target at different scales, and push your strongest few further — the
-  zero-interaction version, the 10× version, the version for the other role.
-- Read the code enough to make each idea specific to this app; an idea that passes the swap test
-  in `converge.md` is wasted output.
-- If Reframe is yours, start from the targets most likely to have thin or conflicted answers:
-  complaints that pit two roles against each other, and flows whose gap is large.
+- You run isolated from the other lens agents so the bank stays wide. Generate; grounding judges.
+- Open the code the flow sketches cite, and whatever else an idea needs to name this app. An idea
+  that still reads true with another app's name in it fails the swap test and is wasted output.
 
 ## Merge — one
 
-No code reading. Deduplicate across the lens agents: merge ideas that make the same change, keeping
-the strongest wording and every anchor, and record which lens groups proposed each. Cluster into
-4–8 opportunity areas named by the user need (`converge.md`, Clustering), and give each idea an
-**I** id. Don't drop weak ideas — that's grounding's job — but do fold a cheaper and a bigger
-version of one idea into a single entry.
+No code reading. The raw ideas arrive with ids `r1, r2, …`; return ids, not copies.
+
+- Merge ideas that make the **same change**: name the one to keep and the ones it absorbs, and give
+  better wording only if the merge improved it. Fold a cheaper and a bigger version of one idea into
+  one entry with *variants*.
+- Ideas that only serve the **same need** are not merged — they go in the same area.
+- Cluster into 4–8 opportunity areas (`converge.md`, Clustering). Don't drop weak ideas.
+
+## Reframe — one
+
+`lenses.md` §8. From the merged areas, pick the targets the other lenses left thin: areas with few
+ideas, areas that are all Tweaks, and ideas that pit two roles against each other. Add Reframe ideas
+for them — usually Rethinks, still anchored — each naming the area it belongs to by its need,
+verbatim, or a new need if none fits.
 
 ## Grounder — one per opportunity area
 
-The five grounding checks in `converge.md`, against the code, for every idea in your area. Then
-score value, confidence and effort. Drop an idea only for a reason you can state — it exists,
-nothing anchors it, it fails the swap test — and record the reason: tempting ideas dropped for
-hurting a role or removing a guard feed "Tempting but wrong".
+`converge.md`: Anchors, Grounding checks and Scoring only. Run the five checks on every idea in your
+area, against the code and the brief's X rows, and score the ideas you keep. Drop an idea only for a
+reason the checks name, and record it. If the swap test made you reword an idea, return the new
+wording.
 
 ## Synthesizer — one
 
-Write the report from the grounded areas, using the template and the picking rules in
-`converge.md`. Fill Coverage from the brief's complaint ids — a complaint with no surviving idea is
-listed with the reason. List any lens group or area that failed, so the reader knows the bank is
-incomplete.
+`converge.md` from Coverage gate on. Run the coverage gate on the bank, then pick and write the
+report. Ideas marked *ungrounded* — their area failed — go only to the Idea bank. Fill Coverage from
+the brief's complaint ids, and list any lens group, the Reframe pass or any area that failed, so the
+reader knows the bank is incomplete.

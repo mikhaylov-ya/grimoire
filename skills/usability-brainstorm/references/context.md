@@ -1,4 +1,4 @@
-# Context → consequences — read with lenses.md, family 6
+# Context → consequences — the Fit family; read only the sections the context sheet touches
 
 Each row is a fact the brief may contain, what follows from it for design, and what to check in
 the code to see whether it's handled. Use the rows the context sheet supports. An idea that comes
@@ -16,7 +16,7 @@ that no table lists. Ask what else follows.
 | Barcode or RFID scanner | scanners type fast and end with Enter: a focused field that takes the scan and acts on Enter, focus returning there after each item, no dialog stealing focus | `autoFocus`, Enter handling, focus after submit |
 | Keyboard-heavy desk work | the whole frequent flow without a mouse; Tab order follows the work; Enter or Ctrl+Enter submits; custom selects operable by keyboard | key handlers, `tabIndex`, custom dropdowns built from `div`s |
 | Small laptops, browser zoom at 125–150% | sticky headers and footers eat the viewport; dialogs taller than the screen hide their buttons | fixed heights, dialogs without `max-height` and scroll |
-| Several monitors, many tabs | links open where expected; state lives in the URL; tabs don't overwrite each other | `window.open`, view state outside the URL, no cross-tab sync |
+| Several monitors, many tabs | links open where expected; state lives in the URL; tabs don't overwrite each other | `window.open`, view state outside the URL (D4), no cross-tab sync |
 | Printing (labels, invoices, pick lists) | a print layout without the app's navigation; page breaks that don't split a row | `@media print`, a print route |
 
 ## Browsers and setup
@@ -40,7 +40,7 @@ that no table lists. Ask what else follows.
 
 | Fact | Consequences | Check in code |
 |---|---|---|
-| Frequent interruptions (clinics, support, shops) | drafts, resume, status readable at a glance | `interaction-cost.md` D2, A4 |
+| Frequent interruptions (clinics, support, shops) | drafts, resume, status readable at a glance | `interaction-cost.md` D2 (input lost on navigation), A4 (re-entry after a session boundary) |
 | Shared workstations, shifts | fast user switching, short sessions that keep work, the signed-in user visible | session length, logout handling, drafts keyed by user |
 | Customer present (counter, phone) | the user talks while typing: search by what the customer says — name, phone, the last digits of a number; no mandatory free text | which fields search can match |
 | Peaks (month-end close, holiday rush, morning dispatch) | the flow at its busiest: fewest decisions, bulk actions, nothing slow on the critical path | — |
